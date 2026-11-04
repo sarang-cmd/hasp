@@ -1,0 +1,74 @@
+:root {
+  --paper: #f6f5f1;
+  --panel: #ffffff;
+  --ink: #16181c;
+  --ink-2: #3d434d;
+  --mut: #666d78;
+  --rule: #d9d7cf;
+  --accent: #a8402a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14161a;
+    --panel: #1c1f24;
+    --ink: #f2f4f7;
+    --ink-2: #c2c8d0;
+    --mut: #8d97a4;
+    --rule: #2c3138;
+    --accent: #e0683a;
+  }
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 15px/1.6 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+main { max-width: 620px; margin: 0 auto; padding: 44px 24px 80px; }
+
+h1 { font-size: 26px; letter-spacing: -0.02em; margin: 0 0 6px; }
+h2 { font-size: 15px; margin: 0 0 8px; letter-spacing: 0.01em; }
+.lede { color: var(--ink-2); margin: 0 0 32px; }
+
+section { border-top: 1px solid var(--rule); padding: 22px 0; }
+section p { color: var(--ink-2); margin: 0 0 14px; }
+
+code { font-size: 13px; background: var(--panel); border: 1px solid var(--rule); border-radius: 4px; padding: 1px 5px; }
+
+form { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+label { flex-basis: 100%; font-size: 13px; color: var(--mut); }
+
+input[type="text"] {
+  flex: 1;
+  min-width: 240px;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+}
+
+input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+button {
+  padding: 8px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+button[type="submit"] { background: var(--accent); border-color: transparent; color: #fff; font-weight: 600; }
+
+#origin-status { margin-top: 10px; font-size: 13px; min-height: 20px; }
+#origin-status.ok { color: var(--ink-2); }
+#origin-status.bad { color: var(--accent); }
+
+.plain { margin: 0; padding-left: 20px; color: var(--ink-2); }
+.plain li { margin-bottom: 6px; }

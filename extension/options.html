@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hasp settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <h1>Hasp</h1>
+      <p class="lede">This extension is a window onto a vault running on this machine. It holds no secrets of its own.</p>
+
+      <section>
+        <h2>Vault address</h2>
+        <p>Only http on <code>127.0.0.1</code> or <code>localhost</code> is accepted. A remote address would send your session cookie to a server this extension does not control, so it is refused rather than warned about.</p>
+        <form id="origin-form">
+          <label for="origin">Address</label>
+          <input id="origin" type="text" inputmode="url" autocomplete="off" spellcheck="false" placeholder="http://127.0.0.1:3000" />
+          <button type="submit">Save</button>
+          <button type="button" id="test">Test</button>
+        </form>
+        <p id="origin-status" role="status"></p>
+      </section>
+
+      <section>
+        <h2>What this extension can and cannot do</h2>
+        <ul class="plain">
+          <li>It reads the vault's item list over loopback and copies a value or a code when you ask.</li>
+          <li>It does not read page content. There is no content script.</li>
+          <li>It does not type into fields. Filling forms needs a threat model that does not exist yet.</li>
+          <li>It stores one setting, the address above. The session lives in a cookie it cannot read.</li>
+        </ul>
+      </section>
+
+      <section>
+        <h2>Unlock</h2>
+        <p id="session-line">Checking</p>
+        <button type="button" id="lock">Lock the vault</button>
+      </section>
+    </main>
+    <script src="options.js" type="module"></script>
+  </body>
+</html>
