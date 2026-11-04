@@ -39,6 +39,8 @@ import { retryAfter, recordFailure, recordSuccess } from "./src/core/throttle.js
 import { parseKeepJson, parseKeepHtml, parseOtpExport, parseCsv, parseNote, findDuplicates } from "./src/core/parse.js";
 import { seedVault, SAMPLE_PASSWORD } from "./src/core/seed.js";
 import { fetchLogo, keyFromEnv, publicKeyFromEnv } from "./src/core/logodev.js";
+import { parseAuthenticatorExport } from "./src/core/authenticator.js";
+import { authImportToCandidates, looksLikeAuthenticator } from "./src/core/authimport.js";
 import { load as loadEnv } from "./src/core/env.mjs";
 
 const ROOT = resolve(import.meta.dirname);
@@ -439,6 +441,13 @@ async function route(req, res) {
 function chooseParser(text, filename) {
   const name = filename.toLowerCase();
   const trimmed = text.trimStart();
+  // Authenticator exports are checked first and by shape. Their JSON has no
+  // password manager fields, so falling through would classify an Aegis vault as a
+  // Keep note and lose every code in it.
+  if (looksLikeAuthenticator(text)) {
+    const parsed = authImportToCandidates(parseAuthenticatorExport(text));
+    if (parsed.candidates.length) return parsed;
+  }
   if (name.endsWith(".json") || trimmed.startsWith("{") || trimmed.startsWith("[")) {
     try {
       return parseKeepJson(text);
