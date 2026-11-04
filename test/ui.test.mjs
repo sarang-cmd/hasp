@@ -563,21 +563,53 @@ describe("vault view", () => {
 });
 
 describe("search and filters", () => {
-  test("typing filters the list without a request", async () => {
+  test("typing asks the vault, and the list narrows", async () => {
+    // The query is answered by the blind index on the server, not by filtering the
+    // decrypted list here. That is the point: the words typed are never stored, and
+    // the search does not need the plaintext of fields it did not match.
+    //
+    // Settle longer than the debounce, since the request only leaves after 120ms.
     const search = document.querySelector("[data-search]");
     search.value = "stripe";
     search.dispatchEvent(new window.Event("input", { bubbles: true }));
-    await settle();
+    await settle(24, 15);
     const names = [...document.querySelectorAll(".row .row-name")].map((n) => n.textContent);
-    assert.equal(names.length, 1);
+    // Two, not one. A note item mentions Stripe webhooks, and notes are indexed. The old browser filter only looked at name, service, host, type and
+    // tags, so it missed the note and showed a single row.
+    assert.equal(names.length, 2);
     assert.match(names[0], /Stripe/);
+    assert.ok(names.includes("Rate limit notes"));
+  });
+
+  test("the query reaches the server, and the words typed are not kept anywhere", async () => {
+    // The rows narrowing is not proof that search is server side: a client filter
+    // would narrow them too. This wraps fetch and reads the URL that actually left.
+    const seen = [];
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = (input, init) => {
+      const href = typeof input === "string" ? input : input.url;
+      seen.push(href);
+      return realFetch(input, init);
+    };
+    try {
+      const search = document.querySelector("[data-search]");
+      search.value = "vercel";
+      search.dispatchEvent(new window.Event("input", { bubbles: true }));
+      await settle(24, 15);
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+    const stateCall = seen.find((u) => u.includes("/api/state?q="));
+    assert.ok(stateCall, `no query request left the page, saw ${JSON.stringify(seen)}`);
+    assert.match(stateCall, /q=vercel/);
+    assert.equal(seen.filter((u) => u.includes("q=vercel")).length, 1, "one request per query, not one per keystroke");
   });
 
   test("a query with no match says so rather than showing an empty table", async () => {
     const search = document.querySelector("[data-search]");
     search.value = "zzzzz";
     search.dispatchEvent(new window.Event("input", { bubbles: true }));
-    await settle();
+    await settle(24, 15);
     assert.equal(document.querySelectorAll(".row").length, 0);
     assert.match(document.querySelector(".inspector").textContent, /No match/);
   });

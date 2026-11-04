@@ -171,14 +171,65 @@ function counts() {
   return c;
 }
 
+/**
+ * The rows to show.
+ *
+ * Text matching is not done here. A query goes to the vault, which answers from the
+ * blind index: the item is stored as ciphertext plus a set of keyed hashes, so a
+ * search never needs the plaintext of a field the query did not match, and the
+ * words typed are not stored anywhere.
+ *
+ * That means state.items already holds the matches when a query is active. The two
+ * filters below are the ones that cannot be indexed, because they are exact values
+ * the client already has.
+ */
 function visible() {
-  const q = state.query.trim().toLowerCase();
   return state.items.filter((i) => {
     if (state.type !== "all" && i.type !== state.type) return false;
     if (state.env !== "all" && (i.env || "") !== state.env) return false;
-    if (!q) return true;
-    return `${i.name} ${i.service} ${i.host} ${i.type} ${i.tags?.join(" ") || ""}`.toLowerCase().includes(q);
+    return true;
   });
+}
+
+/**
+ * Ask the vault for the rows matching a query.
+ *
+ * Debounced, because every keystroke would otherwise be a round trip and one
+ * decryption pass. An empty query is not debounced: clearing the field should bring
+ * the list back at once.
+ */
+let searchTimer = null;
+let searchSeq = 0;
+
+function searchNow(query) {
+  clearTimeout(searchTimer);
+  const seq = ++searchSeq;
+  const run = async () => {
+    try {
+      const data = await api(`/api/state?q=${encodeURIComponent(query)}`);
+      // A slower earlier request must not overwrite a newer result.
+      if (seq !== searchSeq) return;
+      state.items = data.items;
+      state.meta = data.meta || state.meta;
+    } catch (err) {
+      if (seq === searchSeq) showError(err.message);
+      return;
+    }
+    const content = $(".content");
+    if (!content) return;
+    const rows = visible();
+    if (!rows.some((i) => i.id === state.selectedId)) {
+      state.selectedId = rows.at(0)?.id ?? null;
+      state.revealUntil = 0;
+    }
+    content.innerHTML = renderVault().body;
+    const inspector = $(".inspector");
+    if (inspector && !state.selectedId) {
+      inspector.outerHTML = `<aside class="inspector" aria-label="Item detail"><div class="empty"><strong>No match</strong>Nothing in the vault matches "${esc(state.query)}".</div></aside>`;
+    }
+  };
+  if (!query.trim()) return run();
+  searchTimer = setTimeout(run, 120);
 }
 
 function renderVault() {
@@ -913,21 +964,9 @@ document.addEventListener("click", async (e) => {
 document.addEventListener("input", (e) => {
   if (!e.target.matches("[data-search]")) return;
   state.query = e.target.value;
-
-  // Replace only the list and the inspector, so the caret stays in the field.
-  const content = $(".content");
-  if (!content) return;
-  const visibleIds = new Set(visible().map((i) => i.id));
-  if (!visibleIds.has(state.selectedId)) {
-    state.selectedId = visible().at(0)?.id ?? null;
-    state.revealUntil = 0;
-  }
-  const { body } = renderVault();
-  content.innerHTML = body;
-  if (!state.selectedId) {
-    const inspector = $(".inspector");
-    if (inspector) inspector.outerHTML = `<aside class="inspector" aria-label="Item detail"><div class="empty"><strong>No match</strong>Nothing in the vault matches "${esc(state.query)}".</div></aside>`;
-  }
+  // The search field is not inside .content, so replacing the list below does not
+  // touch the caret. That is why this handler no longer has to be careful about it.
+  searchNow(state.query);
 });
 
 document.addEventListener("change", async (e) => {
