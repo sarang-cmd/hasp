@@ -38,12 +38,19 @@ const BOOT_SCRIPT_HASH = "sha256-5HaEXYMUkXbx4DS4MeQcLSFLZ+2BzFEEjY/UJ5fXHsg=";
 import { retryAfter, recordFailure, recordSuccess } from "./src/core/throttle.js";
 import { parseKeepJson, parseKeepHtml, parseOtpExport, parseCsv, parseNote, findDuplicates } from "./src/core/parse.js";
 import { seedVault, SAMPLE_PASSWORD } from "./src/core/seed.js";
+import { fetchLogo, keyFromEnv, publicKeyFromEnv } from "./src/core/logodev.js";
+import { load as loadEnv } from "./src/core/env.mjs";
 
 const ROOT = resolve(import.meta.dirname);
 const WEB = join(ROOT, "src", "web");
 const VAULT_DIR = join(ROOT, ".vault");
 const VAULT_FILE = join(VAULT_DIR, "vault.json");
 const PORT = Number(process.env.PORT || process.argv.find((a) => a.startsWith("--port="))?.split("=")[1] || 3000);
+// Read .env before anything consults process.env. A value already in the real
+// environment wins, so a shell variable overrides a file.
+loadEnv();
+
+
 const EPHEMERAL = process.env.HASP_EPHEMERAL === "1";
 const MAX_BODY = 8 * 1024 * 1024;
 
@@ -108,6 +115,7 @@ const MIME = {
   ".woff2": "font/woff2",
   ".json": "application/json; charset=utf-8",
   ".png": "image/png",
+  ".jpg": "image/jpeg",
   ".ico": "image/x-icon",
 };
 
@@ -202,6 +210,10 @@ async function route(req, res) {
       remainingMs: s ? remainingMs(cookies(req)[COOKIE]) : 0,
       meta: vault?.meta ?? null,
       samplePassword: bootPassword,
+      // The client needs to know whether to render a logo at all, and which
+      // public key to use if it does. It never needs the secret.
+      logoProxy: Boolean(keyFromEnv()),
+      logoPublicKey: publicKeyFromEnv(),
     });
   }
 
@@ -247,6 +259,39 @@ async function route(req, res) {
   /* ---- everything below needs a session */
   const s = session(req);
   if (path.startsWith("/api/") && !s) return json(res, 401, { error: "Locked" });
+
+  // Logo proxy. The logo.dev secret key lives in the environment and is used here,
+  // on the server. The browser only ever asks this route for a hostname, so the key
+  // never reaches a bundle, a page source, or the network tab.
+  if (path === "/api/logo" && method === "GET") {
+    if (!s) return json(res, 401, { error: "Locked" });
+    const url = new URL(req.url, "http://localhost");
+    const result = await fetchLogo(url.searchParams.get("host") || "", {
+      params: {
+        size: url.searchParams.get("size") || undefined,
+        format: url.searchParams.get("format") || undefined,
+        theme: url.searchParams.get("theme") || undefined,
+      },
+    });
+    if (result.error) {
+      // 501 rather than 500 for an unconfigured key: the feature is off, not broken.
+      const status = result.error === "not_configured" ? 501 : result.error === "invalid_host" ? 400 : 502;
+      return json(res, status, { error: result.error });
+    }
+    res.writeHead(200, {
+      "content-type": result.contentType,
+      // A logo does not change. Cache it hard in the browser, and say so through
+      // the same security headers as everything else.
+      "cache-control": "public, max-age=86400, immutable",
+      "x-cache": result.cached ? "hit" : "miss",
+      ...SECURITY_HEADERS,
+      // An image response must not carry a CSP that applies to a document; drop the
+      // frame and policy headers that make no sense here.
+      "content-security-policy": undefined,
+      "x-frame-options": undefined,
+    });
+    return res.end(result.body);
+  }
 
   if (path === "/api/state" && method === "GET") {
     const items = vault.listFiltered().map(decorate);
