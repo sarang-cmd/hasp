@@ -2,6 +2,8 @@
 
 Working name: Hasp. Status: design exploration done, 12 directions and 72 mockup images.
 
+Current planning note: this document preserves an earlier proposal, not approved defaults or a description of production readiness. IMPLEMENTATION_REVIEW.md and tasks.md track current decisions and open gates. Hosted AI requires explicit approval and opt-in, and pricing has not been approved. The current server-side prototype is for synthetic data only and does not implement the proposed client-side encryption architecture.
+
 **Built since this plan was written.** Foundry and Nightshift were chosen from the twelve
 directions, and a working web vault now exists for them, each in light and dark. See `README.md` for
 what runs, and `src/core/` for the crypto that the tests pin down. The sections below are kept as
@@ -29,14 +31,14 @@ Trend references come from the DesignerUp list of popular UI styles. Each dark d
 ## 1. Decisions
 
 Settled: name Hasp, directions Foundry and Nightshift with an independent light and dark for each,
-web dashboard first. Still open, with the default that applies if you say nothing:
+web dashboard first. Still open. The recommendations below require review and approval:
 
-| Decision | Options | Default if you say nothing |
+| Decision | Options | Recommendation for review |
 | --- | --- | --- |
 | Next surface | Browser extension, or desktop, or mobile | Browser extension, per phase 2 |
 | Search model | Client-side index, or encrypted server index | Client-side index |
-| AI labels | On-device model, hosted model with redaction, or no model in v1 | Hosted model with explicit consent and redaction |
-| Pricing | Not set. No prices appear in the mockups | Free while in beta |
+| AI labels | On-device model, hosted model with redaction, or no model in v1 | Local rules first. Hosted processing disabled until approved and explicitly opted in |
+| Pricing | Not set. No prices appear in the mockups | Await your decision |
 
 Domain and trademark checks are not done. Do those before printing the name on anything.
 

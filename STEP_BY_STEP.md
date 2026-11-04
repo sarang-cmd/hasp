@@ -2,11 +2,11 @@ Step-by-step guide
 
 Start here
 
-The current repository is a design exploration, not an operational application. The implementation plan is a proposal for your approval. Do not place real secrets in the mockups or use the mockup deployment as a vault.
+The repository contains mockups and a local web vault prototype. The prototype is not audited or production ready. Use synthetic data only. The implementation plan is a proposal for your approval. Do not expose the prototype to untrusted networks or use the mockup deployment as a vault. See DEPLOYMENT.txt for the local preview warning.
 
 Step 1. Review and decide.
 
-You: Read IMPLEMENTATION_REVIEW.md. Choose the release order, design direction, working name, target audience, supported platforms and import priorities. Decide whether hosted AI is permitted. Review the recovery tradeoff and identify a security reviewer. Provide the intended domains, support contact, account owners and monthly budget limits. Approve or amend the scope before implementation starts.
+You: Read IMPLEMENTATION_REVIEW.md. Confirm the release order, target audience, supported platforms and import priorities. Hasp is the working name, with Foundry and Nightshift selected in light and dark modes. Decide whether hosted AI is permitted. Review the recovery tradeoff and identify a security reviewer. Provide the intended domains, support contact, account owners and monthly budget limits. Approve or amend the scope before implementation starts.
 
 Agent: Record approved decisions, open questions, acceptance criteria and changes to the task list. Flag decisions that need a specialist rather than inventing an answer.
 
@@ -18,7 +18,7 @@ Agent: Check each connected service and effective permissions. Explain any missi
 
 Step 3. Establish the engineering baseline.
 
-Agent: Propose the monorepo layout, supported runtime versions and build commands. Create the initial app shells, shared packages and automated checks after scope approval. Document how to run, test and build locally. Configure CI with synthetic data and no production credentials.
+Agent: Inspect the existing Node prototype and tests. Propose whether to reuse, replace or migrate the current code, then agree on the target repository layout, supported runtime versions and build commands. Create missing app shells, shared packages and automated checks after scope approval. Document how to run, test and build locally. Configure CI with synthetic data and no production credentials.
 
 You: Review the proposed stack and approve any paid tools or account changes. Approve the initial design and release criteria.
 
@@ -30,7 +30,7 @@ Agent: Where authorized and technically possible, configure staging resources an
 
 Step 5. Design and review vault security.
 
-Agent: Produce a threat model and detailed design covering keys, encryption, recovery, device access, authorization, metadata, sync and AI data flow. Build test vectors and plan platform compatibility. Reconcile the proposal with PLAN.md.
+Agent: Review the existing threat model in SECURITY.md and produce a detailed target design covering keys, encryption, recovery, device access, authorization, metadata, sync and AI data flow. Document how the prototype differs, including its server-side cryptography and sample password. Build test vectors and plan platform compatibility. Reconcile the proposal with PLAN.md.
 
 You: Review the user-facing recovery tradeoffs and commission or identify an independent security reviewer. Approve the security model and explicitly accept any documented limitations before real data is used.
 
