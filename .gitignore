@@ -15,3 +15,6 @@ tmp/
 .env
 .env.*
 !.env.example
+
+# Build output. A packaged extension is a release artifact, not source.
+dist/
