@@ -18,7 +18,7 @@
 import { createServer } from "node:http";
 import { readFile, writeFile, mkdir, stat } from "node:fs/promises";
 import { existsSync } from "node:fs";
-import { extname, join, normalize, resolve } from "node:path";
+import { extname, join, normalize, relative, resolve } from "node:path";
 import { randomBytes } from "node:crypto";
 
 import { Vault } from "./src/core/vault.js";
@@ -45,7 +45,10 @@ import { load as loadEnv } from "./src/core/env.mjs";
 
 const ROOT = resolve(import.meta.dirname);
 const WEB = join(ROOT, "src", "web");
-const VAULT_DIR = join(ROOT, ".vault");
+// The desktop shell points this at the application data directory, because an
+// install directory is read only on macOS and replaced on update everywhere. A
+// vault lost to an update is not recoverable, so the location is settable.
+const VAULT_DIR = process.env.HASP_VAULT_DIR ? resolve(process.env.HASP_VAULT_DIR) : join(ROOT, ".vault");
 const VAULT_FILE = join(VAULT_DIR, "vault.json");
 const PORT = Number(process.env.PORT || process.argv.find((a) => a.startsWith("--port="))?.split("=")[1] || 3000);
 // Read .env before anything consults process.env. A value already in the real
@@ -561,7 +564,7 @@ await bootVault();
 
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Hasp on http://localhost:${PORT}`);
-  console.log(`Idle lock: ${IDLE_MS / 60000} minutes. Storage: ${EPHEMERAL ? "in memory only" : ".vault/vault.json"}`);
+  console.log(`Idle lock: ${IDLE_MS / 60000} minutes. Storage: ${EPHEMERAL ? "in memory only" : relative(ROOT, VAULT_FILE) || VAULT_FILE}`);
 });
 
 process.on("SIGTERM", () => server.close(() => process.exit(0)));
