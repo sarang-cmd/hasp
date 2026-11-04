@@ -317,11 +317,11 @@ function renderImport() {
     body: `<div class="page">
       <div class="panel">
         <h2>Bring in what you already have</h2>
-        <p>Google Keep Takeout, one-time code exports and password manager CSV. Every parsed field carries a confidence score, and anything under 70 percent goes to review before it is stored.</p>
+        <p>Google Keep Takeout, password manager CSV, otpauth links, and the JSON exports of Aegis, 2FAS, Raivo, Bitwarden, Google Authenticator and Microsoft Authenticator. Every parsed field carries a confidence score, and anything uncertain goes to review before it is stored.</p>
         <div class="drop" tabindex="0" role="button" aria-label="Choose a file to import">
           ${icons.upload}
           <strong>Drop a file, or choose one</strong>
-          <span>Keep .json, Keep .html, .txt with otpauth links, or .csv</span>
+          <span>Keep .json, Keep .html, .csv, an authenticator .json export, or .txt with otpauth links</span>
           <input type="file" hidden accept=".json,.html,.txt,.csv" aria-hidden="true">
         </div>
       </div>
@@ -980,6 +980,16 @@ async function runImport(text, name) {
 }
 
 function renderReview(candidates, source, duplicates) {
+  // A parse that recognises the file but finds nothing in it is a real outcome: a
+  // truncated export, or a vault with no codes in it. Dividing by zero here
+  // rendered NaN% and an empty panel, so it is a message instead.
+  if (!candidates.length) {
+    return `<div class="panel">
+      <h2>Nothing to import</h2>
+      <p>${source ? `${esc(source)} was read, but it holds no entries that can be stored.` : "That file was not recognised."}</p>
+      <p>Supported: Google Keep JSON and HTML, password manager CSV, otpauth links, and the JSON exports of six authenticator apps.</p>
+    </div>`;
+  }
   const accepted = candidates.filter((c) => !c.needsReview && !duplicates.includes(c.id)).length;
   return `<div class="panel">
     <div style="display:flex;align-items:flex-start;gap:16px;margin-bottom:6px">
