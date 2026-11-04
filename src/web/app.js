@@ -18,6 +18,11 @@ const state = {
   // What /api/sync/status last said. Null means "not asked yet", which is different
   // from "not paired", and the panel says which.
   sync: null,
+  // Conflicts from the sync log. Null means "not asked yet", which is not the same
+  // as "none", and the panel says which.
+  conflicts: null,
+  // The comparison currently open: a comparison, an error, or null.
+  conflictView: null,
   selectedId: null,
   query: "",
   type: "all",
@@ -531,12 +536,58 @@ function renderConflicts() {
       .map((c) => {
         const item = state.items.find((i) => i.id === c.id);
         const name = item ? item.name : "an item you have since deleted";
-        return `<li><span>${esc(name)} changed on two machines</span><span>${relTime(c.at)}</span></li>`;
+        return `<li><span>${esc(name)} changed on two machines</span>
+          <span>${relTime(c.at)} <button class="btn btn--small" type="button" data-conflict-open="${esc(c.id)}"${item ? "" : " disabled"}>Compare</button></span></li>`;
       })
       .join("")}
   </ul>
   <p class="hint">The write that arrived first was kept. Nothing was merged, because the
-    store cannot read either side.</p>`;
+    store cannot read either side. Compare opens both copies and keeps the one you pick.</p>`;
+  if (state.conflictView) renderConflictView();
+}
+
+/**
+ * Both sides of one conflict, with a field by field diff.
+ *
+ * The remote side is decrypted by the server, because only the server holds the vault
+ * key and the store's copy is ciphertext. That is the one route that returns plaintext
+ * from the store, and it is why this is behind a session like every other item route.
+ */
+function renderConflictView() {
+  const host = $("[data-conflict-view]");
+  if (!host) return;
+  const view = state.conflictView;
+  if (!view) {
+    host.innerHTML = "";
+    return;
+  }
+  if (view.error) {
+    host.innerHTML = `<div class="error">${esc(view.error)}</div>`;
+    return;
+  }
+  const rows = view.fields
+    .filter((f) => f.differs)
+    .map(
+      (f) => `<tr>
+        <th scope="row">${esc(f.field)}</th>
+        <td>${f.local === null ? `<em class="hint">not set</em>` : `<code>${esc(String(f.local))}</code>`}</td>
+        <td>${f.remote === null ? `<em class="hint">not set</em>` : `<code>${esc(String(f.remote))}</code>`}</td>
+      </tr>`
+    )
+    .join("");
+  host.innerHTML = `
+    <p class="hint">This machine holds rev ${view.local.rev ?? "-"}. The store holds rev
+      ${view.remote.rev ?? "-"}. ${view.differs === 1 ? "1 field differs" : `${view.differs} fields differ`}.</p>
+    ${view.differs === 0 ? `<p class="hint">The two copies agree. Nothing to decide.</p>` : `
+    <table class="diff" style="width:100%;border-collapse:collapse;margin-top:10px">
+      <thead><tr><th scope="col">Field</th><th scope="col">This machine</th><th scope="col">The other one</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn" type="button" data-conflict-keep="local">Keep this machine's copy</button>
+      <button class="btn btn--quiet" type="button" data-conflict-keep="remote">Keep the other machine's copy</button>
+      <button class="btn btn--quiet" type="button" data-conflict-close>Cancel</button>
+    </div>`}`;
 }
 
 function renderSettings() {
@@ -603,6 +654,7 @@ function renderSettings() {
         </div>
         <h2 style="margin-top:22px">Conflicts</h2>
         <div data-sync-conflicts style="margin-top:10px"><p class="hint">Checking…</p></div>
+        <div data-conflict-view></div>
         <p class="hint" style="margin-top:16px">A store token is a write credential. Anyone
           holding it can write junk into the store, though not read a secret. Rotating it
           cuts off the old device.</p>
@@ -1117,6 +1169,53 @@ document.addEventListener("click", async (e) => {
       // A round changes rows, so the list behind the panel is stale.
       await load();
       if (state.view === "settings") render();
+    } catch (err) {
+      toast(err.message);
+    }
+    return;
+  }
+
+  /* ---- conflict resolution */
+
+  const openConflict = t.closest("[data-conflict-open]");
+  if (openConflict) {
+    const id = openConflict.dataset.conflictOpen;
+    // Clear the old view first, or a slow reply for one item would land on top of
+    // another one that was opened after it.
+    state.conflictView = null;
+    renderConflictView();
+    const view = $("[data-conflict-view]");
+    if (view) view.innerHTML = `<p class="hint">Opening both copies…</p>`;
+    try {
+      state.conflictView = await api(`/api/sync/conflicts/compare?id=${encodeURIComponent(id)}`);
+    } catch (err) {
+      state.conflictView = { error: err.message, id };
+    }
+    renderConflictView();
+    return;
+  }
+
+  if (t.closest("[data-conflict-close]")) {
+    state.conflictView = null;
+    renderConflictView();
+    return;
+  }
+
+  const keep = t.closest("[data-conflict-keep]");
+  if (keep) {
+    const id = state.conflictView?.id;
+    if (!id) return;
+    try {
+      const result = await api("/api/sync/conflicts/resolve", {
+        method: "POST",
+        body: JSON.stringify({ id, keep: keep.dataset.conflictKeep }),
+      });
+      state.conflictView = null;
+      state.conflicts = (await api("/api/sync/conflicts")).conflicts;
+      state.sync = await api("/api/sync/status");
+      await load();
+      if (state.view === "settings") render();
+      toast(result.kept === "local" ? "Kept this machine's copy." : "Took the other machine's copy.");
     } catch (err) {
       toast(err.message);
     }

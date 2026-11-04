@@ -685,6 +685,120 @@ async function route(req, res) {
     });
   }
 
+  /**
+   * Both sides of one conflict, decrypted here rather than on the other machine.
+   *
+   * This is the only route that returns plaintext from the store's copy, and it can
+   * only do so because this process holds the vault key. The comparison is a real
+   * one: field by field, not two revision numbers next to each other.
+   */
+  if (path === "/api/sync/conflicts/compare" && method === "GET") {
+    if (!anyLiveSession()) return json(res, 423, { error: "The vault is locked." });
+    if (!syncPairing) return json(res, 409, { error: "This vault is not syncing." });
+    const id = url.searchParams.get("id") || "";
+    let remote;
+    try {
+      remote = syncStore.record(syncPairing.vaultId, syncPairing.token, id);
+    } catch (err) {
+      return json(res, err.status || 500, { error: err.message });
+    }
+    if (!remote) return json(res, 404, { error: "The store has no record for that item." });
+    let remoteItem;
+    try {
+      remoteItem = vault.readRemote(remote);
+    } catch {
+      return json(res, 422, { error: "That record does not open with this vault key." });
+    }
+    const localItem = vault.readItem(id);
+    // Only the fields a conflict can differ in. Timestamps and ids are noise here.
+    const FIELDS = ["name", "service", "host", "type", "env", "value", "notes", "tags", "brand", "issuer", "account"];
+    const fields = FIELDS.map((field) => ({
+      field,
+      local: localItem ? localItem[field] ?? null : null,
+      remote: remoteItem[field] ?? null,
+      differs: JSON.stringify(localItem ? localItem[field] ?? null : null) !== JSON.stringify(remoteItem[field] ?? null),
+    }));
+    return json(res, 200, {
+      id,
+      local: localItem ? { rev: vault.rawRecord(id)?.rev ?? null, exists: true } : { rev: null, exists: false },
+      remote: { rev: remote.rev, exists: !remote.deletedAt },
+      fields,
+      differs: fields.filter((f) => f.differs).length,
+    });
+  }
+
+  /**
+   * Keep one side.
+   *
+   * `keep: local` sends this machine's copy out over the store's, which the store
+   * accepts because the revision is raised above both. `keep: remote` takes the
+   * store's copy into this machine, with the revision raised so it is newer than
+   * the one that lost.
+   */
+  if (path === "/api/sync/conflicts/resolve" && method === "POST") {
+    if (!anyLiveSession()) return json(res, 423, { error: "The vault is locked." });
+    if (!syncPairing) return json(res, 409, { error: "This vault is not syncing." });
+    const payload = await body(req);
+    const id = String(payload?.id || "");
+    const keep = payload?.keep;
+    if (keep !== "local" && keep !== "remote") {
+      return json(res, 400, { error: "keep has to be local or remote" });
+    }
+    if (!id) return json(res, 400, { error: "an item id is required" });
+
+    let remote;
+    try {
+      remote = syncStore.record(syncPairing.vaultId, syncPairing.token, id);
+    } catch (err) {
+      return json(res, err.status || 500, { error: err.message });
+    }
+    if (!remote) return json(res, 404, { error: "The store has no record for that item." });
+
+    if (keep === "remote") {
+      let rev;
+      try {
+        rev = vault.adoptRemote(remote, { over: vault.rawRecord(id)?.rev || 0 });
+      } catch {
+        return json(res, 422, { error: "That record does not open with this vault key." });
+      }
+      // Tell the store this machine already holds the winner, so the next round does
+      // not offer it straight back as a conflict all over again.
+      const sent = syncPairing.sent || {};
+      sent[id] = rev;
+      syncPairing.sent = sent;
+      // The store's copy is now behind the one this machine holds, so push it out.
+      try {
+        const record = vault.rawRecord(id);
+        syncStore.push(syncPairing.vaultId, syncPairing.token, toBlob(record));
+        sent[id] = record.rev;
+      } catch {
+        // A refusal here means the store moved again. The next round reports it, so
+        // this is not swallowed, just left to the next round to say out loud.
+      }
+      await syncStore.flushed;
+      await persist();
+      return json(res, 200, { kept: "remote", rev });
+    }
+
+    // keep: local. Re-seal nothing, send what is already here with a revision that
+    // beats both sides, because the store refuses anything at or below its own.
+    const record = vault.rawRecord(id);
+    if (!record) return json(res, 404, { error: "This machine has no record for that item." });
+    const beat = Math.max(record.rev || 1, remote.rev || 1) + 1;
+    try {
+      // The record is written back with a raised revision. Nothing is decrypted, so
+      // the ciphertext is the one this machine already had.
+      syncStore.push(syncPairing.vaultId, syncPairing.token, toBlob({ ...record, rev: beat }));
+    } catch (err) {
+      return json(res, err.status || 500, { error: err.message });
+    }
+    const sent = syncPairing.sent || {};
+    sent[id] = beat;
+    syncPairing.sent = sent;
+    await syncStore.flushed;
+    return json(res, 200, { kept: "local", rev: beat });
+  }
+
   /** Forgetting the pairing leaves the store's copy in place, deliberately. */
   if (path === "/api/sync/pairing" && method === "DELETE") {
     if (!anyLiveSession()) return json(res, 423, { error: "The vault is locked." });

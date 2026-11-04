@@ -40,7 +40,7 @@ function bundle() {
     strip(icons),
     strip(tour),
     strip(app),
-    "window.__app = { boot, state, render, refresh, cancelClipboardClear, cancelIdleWarning, lockGateUntil, tileFor, startTour, typeInto, Tour };",
+    "window.__app = { boot, state, render, refresh, cancelClipboardClear, cancelIdleWarning, lockGateUntil, tileFor, startTour, typeInto, Tour, renderSyncBody, renderConflicts, renderConflictView };",
   ].join("\n;\n");
 }
 const BUNDLE = bundle();
@@ -738,6 +738,111 @@ describe("other views", () => {
     assert.match(text(), /Off/);
     assert.equal(document.querySelector("[data-sync-token]"), null, "the token is gone from the panel");
     assert.match(text(), /still on the other side/);
+  });
+
+  test("a conflict can be compared and one side kept", async () => {
+    // Use the app's own fetch, which carries the session cookie, so this drives the
+    // same routes the interface calls rather than a second implementation of them.
+    const call = async (path, options = {}) => {
+      const res = await window.fetch(path, options);
+      return { status: res.status, json: await res.json() };
+    };
+
+    document.querySelector('[data-view="settings"]').dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await settle(12);
+
+    await call("/api/sync/start", { method: "POST" });
+    await call("/api/sync/round", { method: "POST", body: JSON.stringify({ since: 0 }) });
+
+    const item = window.__app.state.items.find((i) => i.type === "api-key");
+    assert.ok(item, "there is an item to clash over");
+
+    // Nothing has clashed yet, so the comparison has to say the copies agree rather
+    // than invent a difference.
+    const agreed = await call(`/api/sync/conflicts/compare?id=${item.id}`);
+    assert.equal(agreed.status, 200);
+    assert.equal(agreed.json.id, item.id);
+    assert.equal(agreed.json.differs, 0);
+    assert.ok(agreed.json.fields.some((f) => f.field === "value"), "the secret is compared");
+
+    // A refusal is named rather than shown as a blank table.
+    const missing = await call("/api/sync/conflicts/compare?id=not-a-real-id");
+    assert.equal(missing.status, 404);
+
+    // Keeping a side raises the revision above the one that lost, then a round is quiet.
+    const kept = await call("/api/sync/conflicts/resolve", {
+      method: "POST",
+      body: JSON.stringify({ id: item.id, keep: "remote" }),
+    });
+    assert.equal(kept.status, 200);
+    assert.equal(kept.json.kept, "remote");
+    const round = await call("/api/sync/round", { method: "POST", body: JSON.stringify({ since: 0 }) });
+    assert.deepEqual(round.json.conflicts, [], "the resolved record does not clash again");
+
+    // And a side that is neither of the two is refused by name.
+    const bad = await call("/api/sync/conflicts/resolve", {
+      method: "POST",
+      body: JSON.stringify({ id: item.id, keep: "sideways" }),
+    });
+    assert.equal(bad.status, 400);
+    assert.match(bad.json.error, /local or remote/);
+  });
+
+  test("the panel draws a conflict row and opens a comparison from it", async () => {
+    document.querySelector('[data-view="settings"]').dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await settle(12);
+    await window.fetch("/api/sync/start", { method: "POST" });
+    await window.fetch("/api/sync/round", { method: "POST", body: JSON.stringify({ since: 0 }) });
+    await settle(12);
+
+    const item = window.__app.state.items.find((i) => i.type === "api-key");
+    const { renderSyncBody, renderConflicts, renderConflictView, state } = window.__app;
+
+    // A conflict as the server would report it: an id, two revisions, a timestamp.
+    state.sync = { paired: true, url: "http://127.0.0.1:3922", held: 14, seq: 15 };
+    state.conflicts = [{ id: item.id, local: 1, remote: 2, at: new Date().toISOString(), present: true }];
+    renderSyncBody();
+    renderConflicts();
+    await settle(3);
+
+    const row = document.querySelector("[data-conflict-open]");
+    assert.ok(row, "a conflict row with a way to open it");
+    assert.equal(row.dataset.conflictOpen, item.id);
+    assert.match(document.getElementById("app").textContent, /changed on two machines/);
+    // The row names the item, which the server could not do, because it has no name.
+    assert.match(document.getElementById("app").textContent, new RegExp(item.name.slice(0, 12)));
+
+    // The comparison renders both sides and a button for each.
+    state.conflictView = {
+      id: item.id,
+      local: { rev: 1, exists: true },
+      remote: { rev: 2, exists: true },
+      differs: 1,
+      fields: [
+        { field: "name", local: item.name, remote: item.name, differs: false },
+        { field: "value", local: "one", remote: "the other", differs: true },
+      ],
+    };
+    renderConflictView();
+    await settle(2);
+    const view = document.querySelector("[data-conflict-view]").textContent;
+    assert.match(view, /1 field differs/);
+    assert.match(view, /the other/);
+    assert.ok(document.querySelector('[data-conflict-keep="local"]'), "a way to keep this machine's copy");
+    assert.ok(document.querySelector('[data-conflict-keep="remote"]'), "and the other one's");
+
+    // A deleted item has nothing to compare, so the button is disabled rather than gone,
+    // which would leave a row with no explanation.
+    state.conflictView = null;
+    state.conflicts = [{ id: "gone-forever", local: 1, remote: 2, at: new Date().toISOString(), present: false }];
+    renderConflicts();
+    await settle(2);
+    assert.equal(document.querySelector("[data-conflict-open]").disabled, true);
+    assert.match(document.getElementById("app").textContent, /since deleted/);
+
+    state.conflicts = [];
+    state.conflictView = null;
+    renderConflicts();
   });
 
   test("the import view accepts a paste and renders a review", async () => {
