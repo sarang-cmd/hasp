@@ -113,6 +113,25 @@ const syncStore = new SyncStore({
  */
 let syncPairing = null;
 
+/**
+ * The conflict log.
+ *
+ * PLAN.md calls for last write wins with a visible log, and a conflict that exists
+ * only in one response is not visible to anyone who was not watching. Each entry
+ * names an item by id only: the store cannot read a name, and this file should not
+ * invent one, so the client resolves the id against its own vault.
+ *
+ * Capped, because a log that grows without limit is a disk leak. Oldest entries go.
+ */
+let syncLog = [];
+const SYNC_LOG_MAX = 200;
+
+/** Record one conflict. Ids and revisions only, never content. */
+function logConflict({ id, local, remote, at = new Date().toISOString() }) {
+  syncLog.push({ id, local, remote, at });
+  if (syncLog.length > SYNC_LOG_MAX) syncLog = syncLog.slice(-SYNC_LOG_MAX);
+}
+
 /** A pending pairing and the paired devices. Memory only: a restart revokes all. */
 let pairing = null;
 let devices = [];
@@ -162,6 +181,7 @@ async function bootVault() {
     try {
       const pairing = JSON.parse(await readFile(join(VAULT_DIR, "sync-pairing.json"), "utf8"));
       if (pairing?.vaultId === vault.meta.id && pairing?.token) syncPairing = pairing;
+      if (Array.isArray(pairing?.log)) syncLog = pairing.log.slice(-SYNC_LOG_MAX);
     } catch {
       // Not paired yet.
     }
@@ -646,6 +666,25 @@ async function route(req, res) {
     });
   }
 
+  /**
+   * The conflict log, newest first.
+   *
+   * Ids and revisions only. The client resolves each id against its own vault, which
+   * is the only place a name exists, so this route cannot leak one.
+   */
+  if (path === "/api/sync/conflicts" && method === "GET") {
+    if (!anyLiveSession()) return json(res, 423, { error: "The vault is locked." });
+    const known = new Set(vault.listFiltered().map((i) => i.id));
+    return json(res, 200, {
+      conflicts: syncLog
+        .slice()
+        .reverse()
+        // An item that was deleted after the conflict still has a record, so the
+        // entry is kept but marked, rather than silently dropped.
+        .map((c) => ({ ...c, present: known.has(c.id) })),
+    });
+  }
+
   /** Forgetting the pairing leaves the store's copy in place, deliberately. */
   if (path === "/api/sync/pairing" && method === "DELETE") {
     if (!anyLiveSession()) return json(res, 423, { error: "The vault is locked." });
@@ -684,6 +723,14 @@ async function route(req, res) {
       } catch {
         rejected += 1;
       }
+      // The store served this record, so it already holds it. Recording that stops the
+      // push below from offering the same revision straight back, which the store would
+      // refuse as a conflict at an equal revision. Without this line, a pull reports
+      // every record it just received as a conflict with itself.
+      const sentMap = syncPairing.sent || {};
+      const current = vault.rawRecord(record.id);
+      if (current) sentMap[record.id] = current.rev;
+      syncPairing.sent = sentMap;
     }
     // Everything local goes out. The store refuses anything it already has, so a
     // resend is cheap and a divergence is a 409 rather than a silent overwrite.
@@ -700,13 +747,21 @@ async function route(req, res) {
         sent[record.id] = record.rev;
         pushed += 1;
       } catch (err) {
-        if (err.status === 409) conflicts.push({ id: record.id, local: record.rev, remote: err.current ?? 0 });
+        if (err.status === 409) {
+          const entry = { id: record.id, local: record.rev, remote: err.current ?? 0 };
+          conflicts.push(entry);
+          logConflict(entry);
+        }
       }
     }
     syncPairing.sent = sent;
     await syncStore.flushed;
     syncPairing.seq = vault.seq;
-    await writeFile(join(VAULT_DIR, "sync-pairing.json"), JSON.stringify(syncPairing, null, 2), { mode: 0o600 });
+    await writeFile(
+      join(VAULT_DIR, "sync-pairing.json"),
+      JSON.stringify({ ...syncPairing, log: syncLog }, null, 2),
+      { mode: 0o600 }
+    );
     await persist();
     return json(res, 200, {
       pulled: { applied, rejected },
@@ -866,6 +921,10 @@ const server = createServer((req, res) => {
 });
 
 await bootVault();
+// The store is a file, and until this ran a restart forgot every record it held.
+// A second machine pulling after a restart got an empty answer, which looks exactly
+// like "there is nothing to sync" rather than "the store lost its copy".
+await syncStore.load();
 
 // A phone on the same network needs this reachable, which means listening beyond
 // loopback. That is a decision with a cost: the vault answers other devices, and
