@@ -331,8 +331,25 @@ async function route(req, res) {
   }
 
   if (path === "/api/state" && method === "GET") {
-    const items = vault.listFiltered().map(decorate);
-    return json(res, 200, { items, meta: { ...vault.meta, kdf: KDF.algorithm, idleMs: IDLE_MS }, samplePassword: bootPassword });
+    // A query is answered by the blind index, not by scanning decrypted text. The
+    // item sits on disk as ciphertext plus a set of keyed hashes, so a search can be
+    // served without decrypting everything, and a query never has to exist as
+    // plaintext anywhere but in this request.
+    //
+    // `q` is optional. Without it the whole list is returned, which is what the
+    // list view asks for on load.
+    const q = (url.searchParams.get("q") || "").trim();
+    const items = (q ? vault.search(q) : vault.listFiltered()).map(decorate);
+    return json(res, 200, {
+      items,
+      query: q,
+      // True when the index could answer, false when the caller should treat the
+      // result as a filter over the full list. The client uses this rather than
+      // guessing.
+      indexed: q ? true : undefined,
+      meta: { ...vault.meta, kdf: KDF.algorithm, idleMs: IDLE_MS },
+      samplePassword: bootPassword,
+    });
   }
 
   if (path === "/api/items" && method === "POST") {
