@@ -8,10 +8,15 @@ caught something.
 ```
 npm install
 npm start        # http://localhost:3000, sample password foundry-nightshift-2026
+npm run dev      # the same server, restarting when src/ or server.mjs changes
 npm test         # 217 cases
 ```
 
 Node 22 or newer. No database, no environment variables, no network at runtime.
+
+`npm run dev` watches only the paths that exist in the checkout, so it starts
+whether or not `app/` is present, and it passes anything after `--` to the
+server (`npm run dev -- --port=4000`).
 
 `npm run icons` regenerates `src/web/icons.js` from the vendored Heroicons set.
 `npm run render` regenerates every image in `docs/screens`. Both are checked in, so
