@@ -21,7 +21,10 @@
     "test:auth": "node --experimental-strip-types --test test/authenticator.test.mjs",
     "test:logo": "node --experimental-strip-types --test test/logodev.test.mjs test/env.test.mjs",
     "site": "node tools/site.mjs",
-    "check": "npm run site && npm test"
+    "check": "npm run site && npm test",
+    "test:import": "node --experimental-strip-types --test test/authimport.test.mjs",
+    "ext": "node tools/package-extension.mjs",
+    "test:ext": "node --test test/extension.test.mjs"
   },
   "license": "UNLICENSED",
   "devDependencies": {
