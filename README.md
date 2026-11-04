@@ -112,6 +112,9 @@ local SVGs. It works with the network unplugged.
 
 ## Security, honestly
 
+Full detail in [SECURITY.md](SECURITY.md), including the threat model and the parts
+that are deliberately out of scope.
+
 - Sessions hold the vault key in process memory with an idle lock; the key is never
   written to disk.
 - The cookie is `HttpOnly; SameSite=Strict; Path=/`. Cross-origin POSTs are refused.
