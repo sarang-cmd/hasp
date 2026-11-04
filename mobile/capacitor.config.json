@@ -1,0 +1,16 @@
+{
+  "appId": "dev.hasp.app",
+  "appName": "Hasp",
+  "webDir": "www",
+  "server": {
+    "androidScheme": "https",
+    "iosScheme": "hasp"
+  },
+  "plugins": {
+    "SplashScreen": {
+      "backgroundColor": "#14161a",
+      "launchAutoHide": true,
+      "launchShowDuration": 600
+    }
+  }
+}
