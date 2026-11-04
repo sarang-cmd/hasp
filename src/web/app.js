@@ -84,15 +84,18 @@ const store = (() => {
 
 function applyAppearance(next) {
   const root = document.documentElement;
+  // attributes() omits data-accent for the default, so a stale mono has to be
+  // cleared explicitly or switching back to Colour would do nothing.
+  root.removeAttribute("data-accent");
   for (const [k, v] of Object.entries(attributes(next))) root.setAttribute(k, v);
   const meta = $('meta[name="theme-color"]');
-  if (meta) meta.content = next.mode === "dark" ? "#14140f" : "#e8e6e0";
+  if (meta) meta.content = next.mode === "dark" ? (next.dir === "foundry" ? "#14140f" : "#14161a") : next.dir === "foundry" ? "#e8e6e0" : "#e4e8ee";
   renderSwitches();
 }
 
 function currentAppearance() {
   const root = document.documentElement;
-  return { dir: root.dataset.dir, mode: root.dataset.mode };
+  return { dir: root.dataset.dir, mode: root.dataset.mode, accent: root.dataset.accent || "colour" };
 }
 
 function setAppearance(next) {
@@ -380,7 +383,7 @@ function renderDevices() {
 }
 
 function renderSettings() {
-  const { dir, mode } = currentAppearance();
+  const { dir, mode, accent } = currentAppearance();
   return {
     title: "Settings",
     sub: "Appearance, security and data",
@@ -396,6 +399,13 @@ function renderSettings() {
               ${DIRECTIONS.map((d) => `<button type="button" data-dir-switch="${d}" aria-pressed="${d === dir}">${LABELS[d]}</button>`).join("")}
             </div>
             <p class="hint">${esc(NOTES[dir])}</p>
+          </div>
+          <div>
+            <span class="flabel">Accent</span>
+            <div class="seg" role="group" aria-label="Accent style" style="margin-top:6px">
+              ${["colour", "mono", "grey"].map((a) => `<button type="button" data-accent-switch="${a}" aria-pressed="${a === accent}">${a === "colour" ? "Colour" : a === "mono" ? "Black or white" : "Grey"}</button>`).join("")}
+            </div>
+            <p class="hint">${accent === "colour" ? "The direction keeps its own accent." : accent === "mono" ? "Black on light, white on dark. No hue." : "A neutral tone, for less visual pull."}</p>
           </div>
           <div>
             <span class="flabel">Walkthrough</span>
@@ -864,6 +874,13 @@ document.addEventListener("click", async (e) => {
 
   if (t.closest("[data-export]")) return exportVault();
 
+  const accentSwitch = t.closest("[data-accent-switch]");
+  if (accentSwitch) {
+    const { dir, mode } = currentAppearance();
+    choose(store, { dir, mode, accent: accentSwitch.dataset.accentSwitch });
+    return applyAppearance({ dir, mode, accent: accentSwitch.dataset.accentSwitch });
+  }
+
   if (t.closest("[data-tour-start]")) return startTour();
 
   if (t.closest("[data-lock]")) {
@@ -1212,7 +1229,7 @@ export function cancelIdleWarning() {
 
 export async function boot() {
   const initial = resolve(store, { prefersDark: matchMedia("(prefers-color-scheme: dark)").matches });
-  applyAppearance({ dir: initial.dir, mode: initial.mode });
+  applyAppearance({ dir: initial.dir, mode: initial.mode, accent: initial.accent });
 
   const session = await fetch("/api/session", { credentials: "same-origin" }).then((r) => r.json());
   state.meta = { ...(session.meta || {}), idleMs: session.idleMs };

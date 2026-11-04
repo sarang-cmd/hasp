@@ -280,3 +280,54 @@ describe("tile sizing cascade", () => {
     assert.match(APP_CSS, /\.row-name\s*\{[^}]*text-overflow:\s*ellipsis/, ".row-name needs ellipsis");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Accent styles.
+//
+// The accent is a separate axis from direction and mode: colour keeps the
+// direction's own hue, mono is ink on ink, grey is neutral. Each is measured, so a
+// style cannot be added by picking a pleasant hex and hoping.
+
+/** Read a token block for an accent style and mode. */
+function accentBlock(mode, accent) {
+  const re = new RegExp(`\\[data-mode="${mode}"\\]\\[data-accent="${accent}"\\]\\s*\\{([\\s\\S]*?)\\}`, "m");
+  const m = re.exec(CSS);
+  if (!m) return null;
+  return Object.fromEntries([...m[1].matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)].map((x) => [x[1], x[2].trim()]));
+}
+
+describe("accent styles", () => {
+  test("every style is declared for both modes", () => {
+    for (const accent of ["mono", "grey"]) {
+      for (const mode of ["light", "dark"]) {
+        assert.ok(accentBlock(mode, accent), `${accent} ${mode} missing`);
+      }
+    }
+  });
+
+  test("accent ink clears AA on the accent fill", () => {
+    // The accent is used as a solid button background with --accent-ink on top, so
+    // this is body text at body size: 4.5:1, not 3:1.
+    for (const accent of ["mono", "grey"]) {
+      for (const mode of ["light", "dark"]) {
+        const b = accentBlock(mode, accent);
+        const ratio = contrast(b["--accent"], b["--accent-ink"]);
+        assert.ok(ratio >= 4.5, `${accent} ${mode}: ${ratio.toFixed(2)}:1 is under 4.5`);
+      }
+    }
+  });
+
+  test("mono is actually mono", () => {
+    // Black on white in light, white on black in dark. If these drift into a tint
+    // the style stops being the colourless option it exists to provide.
+    assert.equal(accentBlock("light", "mono")["--accent"], "#16181c");
+    assert.equal(accentBlock("dark", "mono")["--accent"], "#f2f4f7");
+  });
+
+  test("the default accent is still the direction's own", () => {
+    // No data-accent attribute means colour: the direction block supplies it.
+    const light = block("nightshift", "light");
+    assert.ok(light["--accent"], "nightshift light lost its accent");
+    assert.notEqual(light["--accent"], "#16181c", "the default must not be the mono style");
+  });
+});

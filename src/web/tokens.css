@@ -210,3 +210,45 @@
 :root[data-dir="nightshift"] body {
   background: var(--bg);
 }
+
+/* ------------------------------------------------------------- accent style */
+/* Direction and mode are independent, and so is the accent. Three styles, set by
+ * data-accent on :root:
+ *
+ *   colour  the direction's own accent. The default, and the one the identity
+ *           documents: one restrained accent per direction.
+ *   mono    black in light mode, white in dark mode. No hue at all. This is what
+ *           the brief calls for when a surface has to carry no colour.
+ *   grey    a neutral mid tone, for readers who want the accent present but do not
+ *           want their eye drawn to it.
+ *
+ * Every style still has to clear the WCAG floor, so test/theme.test.mjs measures
+ * them like any other pair. An accent that fails contrast is not a style choice.
+ */
+
+:root[data-mode="light"][data-accent="mono"] {
+  --accent: #16181c;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(22, 24, 28, 0.07);
+}
+
+:root[data-mode="dark"][data-accent="mono"] {
+  --accent: #f2f4f7;
+  --accent-ink: #14161a;
+  --accent-soft: rgba(242, 244, 247, 0.1);
+}
+
+:root[data-mode="light"][data-accent="grey"] {
+  --accent: #5f6b7a;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(95, 107, 122, 0.1);
+}
+
+:root[data-mode="dark"][data-accent="grey"] {
+  /* Darker than it looks like it should be: the accent is used as a fill behind
+     --accent-ink, so the pair is measured, and a mid grey under white text sits
+     under the floor. */
+  --accent: #8d97a4;
+  --accent-ink: #14161a;
+  --accent-soft: rgba(141, 151, 164, 0.12);
+}

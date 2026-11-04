@@ -181,8 +181,8 @@ describe("appearance", () => {
     const map = new Map();
     const store = { getItem: (k) => map.get(k) ?? null, setItem: (k, v) => map.set(k, v) };
     assert.equal(DEFAULT_DIRECTION, "nightshift", "Nightshift is the surface the product leads with");
-    assert.deepEqual(resolve(store, { prefersDark: false }), { dir: "nightshift", mode: "light", stored: false });
-    assert.deepEqual(resolve(store, { prefersDark: true }), { dir: "nightshift", mode: "dark", stored: false });
+    assert.deepEqual(resolve(store, { prefersDark: false }), { dir: "nightshift", mode: "light", accent: "colour", stored: false });
+    assert.deepEqual(resolve(store, { prefersDark: true }), { dir: "nightshift", mode: "dark", accent: "colour", stored: false });
   });
 
   test("the shell and the resolver agree on the default", async () => {
@@ -201,7 +201,7 @@ describe("appearance", () => {
       ["hasp.mode", "light"],
     ]);
     const store = { getItem: (k) => map.get(k) ?? null, setItem: (k, v) => map.set(k, v) };
-    assert.deepEqual(resolve(store, { prefersDark: true }), { dir: "nightshift", mode: "light", stored: true });
+    assert.deepEqual(resolve(store, { prefersDark: true }), { dir: "nightshift", mode: "light", accent: "colour", stored: true });
   });
 
   test("rubbish in storage is ignored, not trusted", async () => {
@@ -211,7 +211,7 @@ describe("appearance", () => {
       ["hasp.mode", "sepia"],
     ]);
     const store = { getItem: (k) => map.get(k) ?? null, setItem: (k, v) => map.set(k, v) };
-    assert.deepEqual(resolve(store, { prefersDark: false }), { dir: "nightshift", mode: "light", stored: false });
+    assert.deepEqual(resolve(store, { prefersDark: false }), { dir: "nightshift", mode: "light", accent: "colour", stored: false });
   });
 
   test("a blocked storage throws nothing", async () => {
@@ -224,7 +224,7 @@ describe("appearance", () => {
         throw new Error("blocked");
       },
     };
-    assert.deepEqual(resolve(store, { prefersDark: false }), { dir: "nightshift", mode: "light", stored: false });
+    assert.deepEqual(resolve(store, { prefersDark: false }), { dir: "nightshift", mode: "light", accent: "colour", stored: false });
     assert.doesNotThrow(() => choose(store, { dir: "foundry", mode: "dark" }));
   });
 
@@ -348,6 +348,26 @@ describe("vault view", () => {
     document.querySelector("[data-reveal]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await settle();
     assert.match(document.querySelector("[data-secret]").innerHTML, /•/, "hidden again");
+  });
+
+  test("the accent style is a third axis and it persists", async () => {
+    const { attributes, resolve, choose } = await import("../src/web/appearance.js");
+    const map = new Map();
+    const store = { getItem: (k) => map.get(k) ?? null, setItem: (k, v) => map.set(k, v) };
+
+    // Default is colour, which omits the attribute so the stylesheet's own path runs.
+    const initial = resolve(store, { prefersDark: false });
+    assert.equal(initial.accent, "colour");
+    assert.equal(attributes(initial)["data-accent"], undefined, "the default must not set an attribute");
+
+    choose(store, { ...initial, accent: "mono" });
+    const again = resolve(store, { prefersDark: false });
+    assert.equal(again.accent, "mono", "the choice did not persist");
+    assert.equal(attributes(again)["data-accent"], "mono");
+
+    // Rubbish is ignored rather than trusted.
+    map.set("hasp.accent", "<script>");
+    assert.equal(resolve(store, { prefersDark: false }).accent, "colour");
   });
 
   test("the tour dims, highlights, and refuses to advance past an unmet gate", async () => {
