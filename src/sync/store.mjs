@@ -218,6 +218,20 @@ export class SyncStore {
     return { stored: blob.id, rev: blob.rev, seq: blob.seq };
   }
 
+  /**
+   * One record, as stored.
+   *
+   * Needed to show both sides of a conflict. The caller holding the vault key can
+   * decrypt this, so the comparison is a real one rather than two revision numbers.
+   * Returns null rather than throwing for a missing record, because a record that
+   * has been dropped is a normal thing for a caller to be told about.
+   */
+  record(vaultId, token, id) {
+    if (!this.has(vaultId)) throw Object.assign(new Error("no such vault"), { status: 404 });
+    if (!this.#allowed(vaultId, token)) throw Object.assign(new Error("bad token"), { status: 401 });
+    return this.#vaults.get(vaultId).get(id) || null;
+  }
+
   /** Delete a vault and its token. For a test, and for a user who asks. */
   async drop(vaultId) {
     this.#vaults.delete(vaultId);

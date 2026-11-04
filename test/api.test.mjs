@@ -247,6 +247,81 @@ describe("session", () => {
     assert.deepEqual(log.json.conflicts, []);
   });
 
+  test("both sides of a conflict are shown field by field", async () => {
+    const items = (await call("/api/state")).json.items;
+    const target = items.find((i) => i.type === "api-key");
+    const compared = await call(`/api/sync/conflicts/compare?id=${target.id}`);
+    assert.equal(compared.status, 200);
+    assert.equal(compared.json.id, target.id);
+    assert.ok(compared.json.local.exists && compared.json.remote.exists);
+    // Nothing has clashed yet, so no field differs and the two revisions agree.
+    assert.equal(compared.json.differs, 0);
+    assert.equal(compared.json.local.rev, compared.json.remote.rev);
+    const value = compared.json.fields.find((f) => f.field === "value");
+    assert.ok(value, "the secret is one of the compared fields");
+    assert.equal(value.local, value.remote);
+  });
+
+  test("compare names a missing record rather than inventing one", async () => {
+    const res = await call("/api/sync/conflicts/compare?id=not-a-real-id");
+    assert.equal(res.status, 404);
+    assert.match(res.json.error, /no record/);
+  });
+
+  test("resolving refuses a side that is not one of the two", async () => {
+    const items = (await call("/api/state")).json.items;
+    const target = items.find((i) => i.type === "api-key");
+    const res = await call("/api/sync/conflicts/resolve", {
+      method: "POST",
+      body: { id: target.id, keep: "whatever is newer" },
+    });
+    assert.equal(res.status, 400);
+    assert.match(res.json.error, /local or remote/);
+  });
+
+  test("keeping the remote copy takes it and beats the revision that lost", async () => {
+    const items = (await call("/api/state")).json.items;
+    const target = items.find((i) => i.type === "api-key");
+    const before = (await call(`/api/sync/conflicts/compare?id=${target.id}`)).json;
+    const res = await call("/api/sync/conflicts/resolve", {
+      method: "POST",
+      body: { id: target.id, keep: "remote" },
+    });
+    assert.equal(res.status, 200);
+    assert.equal(res.json.kept, "remote");
+    // The record now sits above both sides, so a later write cannot collide with it.
+    assert.ok(res.json.rev > before.remote.rev, `${res.json.rev} is not above ${before.remote.rev}`);
+    const after = (await call(`/api/sync/conflicts/compare?id=${target.id}`)).json;
+    assert.equal(after.differs, 0, "the two sides agree afterwards");
+    // And a round straight after is quiet, which means the store took the new revision.
+    const round = await call("/api/sync/round", { method: "POST", body: { since: 0 } });
+    assert.deepEqual(round.json.conflicts, []);
+  });
+
+  test("keeping the local copy raises it above the store's", async () => {
+    const items = (await call("/api/state")).json.items;
+    const target = items.find((i) => i.type === "api-key");
+    const before = (await call(`/api/sync/conflicts/compare?id=${target.id}`)).json;
+    const res = await call("/api/sync/conflicts/resolve", {
+      method: "POST",
+      body: { id: target.id, keep: "local" },
+    });
+    assert.equal(res.status, 200);
+    assert.equal(res.json.kept, "local");
+    assert.ok(res.json.rev > before.remote.rev);
+    const round = await call("/api/sync/round", { method: "POST", body: { since: 0 } });
+    assert.deepEqual(round.json.conflicts, []);
+  });
+
+  test("resolve refuses a request with no session", async () => {
+    const res = await call("/api/sync/conflicts/resolve", {
+      method: "POST",
+      body: { id: "x", keep: "local" },
+      useCookie: false,
+    });
+    assert.equal(res.status, 401);
+  });
+
   test("the conflict log describes an entry by id and never by name", async () => {
     const log = await call("/api/sync/conflicts");
     const text = JSON.stringify(log.json);

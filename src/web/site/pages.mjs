@@ -393,8 +393,12 @@ npm start</pre>
     <p class="body">When two machines change the same item from the same starting point,
       both reach the same revision with different ciphertext. The store refuses the
       second and reports it. Nothing is merged, because the store can read neither side.
-      The item stays as it was and the losing machine keeps its own copy until someone
-      decides.</p>
+      The item stays as it was and the losing machine keeps its own copy until you decide.</p>
+    <p class="body">Settings lists each clash with a comparison: both copies decrypted, field
+      by field, and a button for each. Keeping one raises its revision above the one that
+      lost and sends it out, so the next round is quiet. That comparison is the only route
+      that returns a plaintext value from the store's copy, and it can only do so because
+      the process running it holds the vault key.</p>
   </div>
 </section>
 

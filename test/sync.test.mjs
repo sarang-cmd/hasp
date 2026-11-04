@@ -399,6 +399,58 @@ describe("sync client", () => {
     assert.equal(blob.lastUsedAt, undefined);
   });
 
+  test("a losing copy can be read without being adopted, so both sides can be compared", async () => {
+    // To show a conflict the interface has to decrypt the copy that lost. That is a
+    // read, not a write, and it must not change the vault.
+    const { vault } = await pair();
+    const { id } = vault.addItem({ name: "Shared", type: "api-key", value: "one way" });
+    const loser = await Vault.unlock(vault.serialize(), SAMPLE_PASSWORD);
+    loser.updateItem(id, { value: "the other way" });
+    const remote = toBlob(loser.rawRecord(id));
+
+    const shown = vault.readRemote(remote);
+    assert.equal(shown.value, "the other way", "the other side decrypts");
+    assert.equal(shown.rev, 2);
+    assert.equal(vault.readItem(id).value, "one way", "and nothing was taken");
+    assert.equal(vault.rawRecord(id).rev, 1);
+  });
+
+  test("readRemote refuses a record it cannot open", async () => {
+    const { vault } = await pair();
+    const stranger = await Vault.create({ name: "Stranger", password: SAMPLE_PASSWORD });
+    stranger.addItem({ name: "Not yours", type: "api-key", value: "EXAMPLE-no" });
+    assert.throws(() => vault.readRemote(stranger.rawRecords()[0]));
+    assert.throws(() => vault.readRemote({ id: "x" }), /ciphertext/);
+  });
+
+  test("adopting the other side raises the revision above both and syncs out", async () => {
+    const { vault, store, client, token } = await pair();
+    const { id } = vault.addItem({ name: "Shared", type: "api-key", value: "local" });
+    client.push();
+    const other = await Vault.unlock(vault.serialize(), SAMPLE_PASSWORD);
+    other.updateItem(id, { value: "remote" });
+    // Put the other side into the store as though it had arrived from elsewhere.
+    store.push(vault.meta.id, token, toBlob(other.rawRecord(id)));
+
+    const rev = vault.adoptRemote(store.record(vault.meta.id, token, id), { over: 1 });
+    assert.equal(rev, 3, "above the losing revision and the winning one");
+    assert.equal(vault.readItem(id).value, "remote", "the adopted copy is what the vault holds");
+    assert.equal(vault.rawRecord(id).rev, 3);
+    // And it is newer than the store's copy, so the next push lands rather than 409.
+    const pushed = client.push();
+    assert.equal(pushed.pushed, 1);
+    assert.deepEqual(pushed.conflicts, []);
+  });
+
+  test("adoptRemote will not store bytes it cannot open", async () => {
+    const { vault } = await pair();
+    const stranger = await Vault.create({ name: "Stranger", password: SAMPLE_PASSWORD });
+    stranger.addItem({ name: "Not yours", type: "api-key", value: "EXAMPLE-no" });
+    const record = stranger.rawRecords()[0];
+    assert.throws(() => vault.adoptRemote(record));
+    assert.equal(vault.rawRecord(record.id), null, "nothing was written");
+  });
+
   test("the sequence survives a save and reload, so a device resumes its delta", async () => {
     const { vault, store, client, vaultId, token } = await pair();
     vault.addItem({ name: "One", type: "api-key", value: "1" });

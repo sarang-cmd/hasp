@@ -421,6 +421,78 @@ export class Vault {
     return this.listFiltered(filter).filter((i) => ids.has(i.id));
   }
 
+  /**
+   * Decrypt a record that is not the one this vault holds.
+   *
+   * Used to show the other side of a conflict before anyone decides. It runs the same
+   * checks as `applyRemote`: the record has to unwrap under this vault key and open
+   * with this vault id, so a record that is not genuine throws rather than decrypting
+   * into a plausible looking lie.
+   *
+   * @param {object} record a record as it came over the wire
+   * @returns {object} plaintext fields, plus id, revision and timestamps
+   */
+  readRemote(record) {
+    if (!record || typeof record !== "object") throw new Error("a record is required");
+    if (!record.id || !record.ciphertext || !record.nonce || !record.wrappedKey) {
+      throw new Error("a record is missing its ciphertext");
+    }
+    const itemKey = unwrapKey(this.#vaultKey, record.wrappedKey);
+    const payload = open(itemKey, record, {
+      vaultId: this.#meta.id,
+      itemId: record.id,
+      version: record.version,
+    });
+    return {
+      ...payload,
+      id: record.id,
+      rev: record.rev,
+      deletedAt: record.deletedAt ?? null,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt,
+    };
+  }
+
+  /**
+   * Take a record as it stands, without any of the checks `applyRemote` makes.
+   *
+   * Only for a caller that has already decided which side wins, and only after the
+   * record has been through `readRemote`. It still cannot smuggle anything in: the
+   * bytes are stored as given, and every later read has to open them under this
+   * vault's key or fail.
+   *
+   * The revision is raised above both sides so the result is newer than either, and
+   * it takes the next slot in the vault sequence so it syncs out on the next round.
+   *
+   * @param {object} record
+   * @param {{over?: number}} [opts] a revision to beat
+   */
+  adoptRemote(record, { over = 0 } = {}) {
+    if (!record || !record.id || !record.ciphertext) throw new Error("a record is required");
+    // Prove it first. Decryption here is the only thing that makes the bytes safe to
+    // store, so it happens before the write rather than after.
+    this.readRemote(record);
+    // Strictly above every side, not merely equal to the highest. An adopted copy at
+    // the same revision as the one it replaces is refused by the store, so the
+    // conflict would look resolved here and stay unresolved everywhere else.
+    const rev = Math.max(record.rev || 1, over, this.#items.get(record.id)?.rev || 0) + 1;
+    this.#items.set(record.id, {
+      id: record.id,
+      type: record.type,
+      rev,
+      seq: this.#nextSeq(),
+      version: record.version,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt,
+      deletedAt: record.deletedAt ?? null,
+      wrappedKey: record.wrappedKey,
+      ciphertext: record.ciphertext,
+      nonce: record.nonce,
+      searchTokens: Array.isArray(record.searchTokens) ? record.searchTokens : [],
+    });
+    return rev;
+  }
+
   /** Record that an item was used. Best effort; never blocks a copy. */
   touch(id) {
     const record = this.#items.get(id);

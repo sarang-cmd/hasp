@@ -44,7 +44,7 @@ below the floor. The palette cannot drift quietly.
 ```
 npm install
 npm start            # http://localhost:3000
-npm test             # 480 cases
+npm test             # 496 cases
 ```
 
 Node 22 or newer. No database, no environment variables, no network at runtime.
@@ -91,6 +91,10 @@ Stated plainly, because the header above says "sealed" and that word has a floor
   kept level, run it, or put it in cron. A machine that has never held the vault file
   cannot start, because sync moves ciphertext between copies of one vault and does
   not create the first copy.
+- **A conflict is decided by you, not merged.** When two machines change one item from
+  the same starting point, the store refuses the second and Settings shows both copies
+  with a field by field diff. Pick one and its revision goes above the one that lost.
+  There is no three way merge and no way to keep half of each.
 - **Sync is a file, not a service.** `src/sync/` moves ciphertext between your own
   machines. It is off until you start it, and it keeps the vault id, record ids,
   revisions, timestamps, item types and the blind index. It cannot read a name or a
@@ -117,7 +121,7 @@ server.mjs            one node:http server, static files + JSON API, no dependen
 src/core/             kdf, crypto, wrap, vault, totp, backup codes, parsers, seed
 src/web/              the client: tokens, components, app, themes page, brands, fonts
 src/web/heroicons/    vendored Heroicons solid, MIT, licence beside them
-test/                 480 cases: crypto, TOTP, parsers, contrast, API, and the real client in jsdom
+test/                 496 cases: crypto, TOTP, parsers, contrast, API, and the real client in jsdom
 tools/                icon and brand generation, the renderer, the Playwright capture
 docs/BRAND.md         the identity: mark, wordmark, colour, clear space
 ```
