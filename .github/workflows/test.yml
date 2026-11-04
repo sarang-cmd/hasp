@@ -1,0 +1,70 @@
+name: test
+
+on:
+  push:
+    branches: ["arena/**"]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      # Both lines are supported, so both are tested. Node 22 is the floor in
+      # package.json engines, and it is the version the project runs on locally.
+      matrix:
+        node: ["22.x", "24.x"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - run: npm ci
+
+      - name: Syntax check every module
+        run: |
+          set -e
+          for f in server.mjs tools/*.mjs src/core/*.js src/core/*.mjs src/web/*.js; do
+            node --check "$f"
+          done
+
+      - name: Regenerate the site and fail if the output is stale
+        run: |
+          npm run site --silent
+          git diff --exit-code src/web/site-pages src/web/sitemap.xml src/web/robots.txt src/web/llms.txt \
+            || { echo "::error::Generated site output is stale. Run npm run site and commit the result."; exit 1; }
+
+      - name: Test
+        run: npm test
+
+      - name: Check no secret was committed
+        run: |
+          set -e
+          # A secret-shaped string is allowed only if it says what it is. Fixtures
+          # pass because they carry a marker word. A live logo.dev key carries none,
+          # so this fails on the real thing without needing the real thing written
+          # down here, which would defeat the point of the check.
+          status=0
+          while IFS= read -r line; do
+            key=$(printf '%s' "$line" | grep -o 'sk_[A-Za-z0-9_-]\{16,\}' | head -1)
+            case "$key" in
+              gsk_*) continue ;;
+            esac
+            if printf '%s' "$key" | grep -qiE 'demo|test|placeholder|invented|not_a_real|example|fake|sample'; then
+              continue
+            fi
+            echo "::error::$line"
+            status=1
+          done < <(grep -rIn --exclude-dir=node_modules --exclude-dir=.git -e 'sk_[A-Za-z0-9_-]\{16,\}' . || true)
+
+          if git ls-files --error-unmatch .env >/dev/null 2>&1; then
+            echo "::error::.env is tracked by git."
+            status=1
+          fi
+          exit $status
