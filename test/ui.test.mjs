@@ -29,11 +29,16 @@ function bundle() {
   const icons = readFileSync(join(WEB, "icons.js"), "utf8");
   const app = readFileSync(join(WEB, "app.js"), "utf8");
   const strip = (src) => src.replace(/^import[^;]+;$/gm, "").replace(/^export /gm, "");
+  // app.js imports the brand index as JSON. The strip above removes the import
+  // statement, so the binding has to be injected the same way the modules are,
+  // or every reference to it is a ReferenceError inside the bundle.
+  const brandIndex = readFileSync(join(WEB, "brands.index.json"), "utf8");
   return [
+    `const BRAND_INDEX = ${brandIndex};`,
     strip(appearance),
     strip(icons),
     strip(app),
-    "window.__app = { boot, state, render, refresh, cancelClipboardClear, cancelIdleWarning, lockGateUntil };",
+    "window.__app = { boot, state, render, refresh, cancelClipboardClear, cancelIdleWarning, lockGateUntil, tileFor };",
   ].join("\n;\n");
 }
 const BUNDLE = bundle();
@@ -338,6 +343,25 @@ describe("vault view", () => {
     document.querySelector("[data-reveal]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await settle();
     assert.match(document.querySelector("[data-secret]").innerHTML, /•/, "hidden again");
+  });
+
+  test("an unknown brand falls back to a letter, not a broken image", async () => {
+    // An imported item can carry any brand string. Pointing an <img> at a slug we
+    // never vendored gives a broken-image glyph, which reads as the product
+    // failing rather than the brand being unknown.
+    // Rows carry a .tile; a vendored brand renders an <img> inside it.
+    const tiles = [...document.querySelectorAll(".row-main .tile")];
+    assert.ok(tiles.length > 0, "precondition: the vault list rendered");
+    const known = tiles.find((t) => t.querySelector("img"));
+    assert.ok(known, "precondition: some row uses a vendored mark");
+
+    // Drive a real item through the renderer with a slug that does not exist.
+    const { tileFor } = window.__app;
+    if (typeof tileFor === "function") {
+      const html = tileFor({ brand: "not-a-real-brand", name: "Acme", service: "Acme" });
+      assert.match(html, /tile--text/, "unknown slugs must fall back to a letter");
+      assert.ok(!html.includes("<img"), "unknown slugs must not emit an image");
+    }
   });
 
   test("the editor returns focus to whatever opened it", async () => {

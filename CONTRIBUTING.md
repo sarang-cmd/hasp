@@ -8,7 +8,7 @@ caught something.
 ```
 npm install
 npm start        # http://localhost:3000, sample password foundry-nightshift-2026
-npm test         # 212 cases
+npm test         # 217 cases
 ```
 
 Node 22 or newer. No database, no environment variables, no network at runtime.

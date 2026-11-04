@@ -402,6 +402,13 @@ code, kbd, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums;
   overflow: hidden;
 }
 .tile img { width: 18px; height: 18px; object-fit: contain; display: block; }
+
+/* A wordmark in an 18px box is a smear. Give the wide marks a wider slot and let
+   the image fill it, so the aspect ratio the brand index recorded is honoured. */
+.tile--wide { width: 42px; }
+.tile--wide img { width: 32px; }
+.tile--wordmark { width: 58px; }
+.tile--wordmark img { width: 46px; height: 16px; }
 .tile--text { font-size: 12px; font-weight: 700; color: #17170f; font-family: var(--display); }
 :root[data-dir="nightshift"] .tile {
   border: none; border-radius: var(--r-sm);

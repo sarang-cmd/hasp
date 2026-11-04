@@ -8,6 +8,7 @@
 
 import { resolve, choose, attributes, DIRECTIONS, MODES, LABELS, NOTES } from "./appearance.js";
 import { icons, mark, brandMark } from "./icons.js";
+import BRAND_INDEX from "./brands.index.json" with { type: "json" };
 
 /* ---------------------------------------------------------------- state */
 
@@ -118,9 +119,17 @@ function renderSwitches() {
 
 /* ---------------------------------------------------------------- render */
 
+/** Slugs that have a vendored mark. Anything else falls back to a letter. */
+const BRAND_SLUGS = new Set(Object.keys(BRAND_INDEX));
+
 function tileFor(item) {
-  if (item.brand) {
-    return `<span class="tile">${brandMark(item.brand, "")}</span>`;
+  // Only trust a slug that we actually vendored. An imported item, or one typed
+  // with a typo, otherwise renders an <img> pointing at a 404: a broken-image
+  // glyph in a 30px tile, which looks like the product failed rather than like
+  // the brand was unknown.
+  if (item.brand && BRAND_SLUGS.has(item.brand)) {
+    const aspect = BRAND_INDEX[item.brand].aspect;
+    return `<span class="tile${aspect === "square" ? "" : ` tile--${aspect}`}">${brandMark(item.brand, "")}</span>`;
   }
   const letter = (item.service || item.name || "?").trim().charAt(0).toUpperCase();
   return `<span class="tile tile--text">${esc(letter)}</span>`;
