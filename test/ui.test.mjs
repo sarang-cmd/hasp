@@ -711,6 +711,35 @@ describe("other views", () => {
     assert.match(text, /independent cryptographic review/i);
   });
 
+  test("the sync panel starts off, turns on, shows the token once and turns off", async () => {
+    document.querySelector('[data-view="settings"]').dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await settle(12);
+
+    const text = () => document.getElementById("app").textContent;
+    // Off is the default, and the copy has to say so rather than leave a blank panel.
+    assert.match(text(), /Sync/);
+    assert.match(text(), /Off/, "sync starts off and says so");
+    assert.ok(document.querySelector("[data-sync-start]"), "there is a way to turn it on");
+
+    document.querySelector("[data-sync-start]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await settle(14);
+    assert.match(text(), /On/);
+    const token = document.querySelector("[data-sync-token]");
+    assert.ok(token, "the write token is shown once");
+    const shown = token.textContent.match(/[A-Za-z0-9_-]{40,}/);
+    assert.ok(shown, `no token in the panel: ${token.textContent}`);
+
+    // The status route must never repeat it, so a re-render from status alone drops it.
+    assert.equal(window.__app.state.syncToken, shown[0], "the token lives in memory only");
+
+    // Turning sync off clears the panel and keeps the stored copy described as such.
+    document.querySelector("[data-sync-off]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await settle(14);
+    assert.match(text(), /Off/);
+    assert.equal(document.querySelector("[data-sync-token]"), null, "the token is gone from the panel");
+    assert.match(text(), /still on the other side/);
+  });
+
   test("the import view accepts a paste and renders a review", async () => {
     document.querySelector('[data-view="import"]').dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await settle(3);

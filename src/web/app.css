@@ -161,7 +161,10 @@ code, kbd, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums;
   display: flex; align-items: center; gap: 7px;
   padding: 0 6px; color: var(--mut); font-size: 11.5px;
 }
-.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); flex: none; }
+.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--mut); flex: none; }
+/* The rail dot is muted until sync is actually on. A green dot next to "On this
+   machine" would be the interface claiming something the server is not doing. */
+.dot.is-live { background: var(--ok); }
 .rail-user {
   display: flex; align-items: center; gap: 9px;
   padding: 10px 6px 0; border-top: 1px solid var(--line-2);
