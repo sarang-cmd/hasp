@@ -563,21 +563,29 @@ describe("vault view", () => {
 });
 
 describe("search and filters", () => {
-  test("typing filters the list without a request", async () => {
+  test("typing asks the vault, and the list narrows", async () => {
+    // The query is answered by the blind index on the server, not by filtering the
+    // decrypted list here. That is the point: the words typed are never stored, and
+    // the search does not need the plaintext of fields it did not match.
+    //
+    // Settle longer than the debounce, since the request only leaves after 120ms.
     const search = document.querySelector("[data-search]");
     search.value = "stripe";
     search.dispatchEvent(new window.Event("input", { bubbles: true }));
-    await settle();
+    await settle(24, 15);
     const names = [...document.querySelectorAll(".row .row-name")].map((n) => n.textContent);
-    assert.equal(names.length, 1);
+    // Two, not one. A note item mentions Stripe webhooks, and notes are indexed. The old browser filter only looked at name, service, host, type and
+    // tags, so it missed the note and showed a single row.
+    assert.equal(names.length, 2);
     assert.match(names[0], /Stripe/);
+    assert.ok(names.includes("Rate limit notes"));
   });
 
   test("a query with no match says so rather than showing an empty table", async () => {
     const search = document.querySelector("[data-search]");
     search.value = "zzzzz";
     search.dispatchEvent(new window.Event("input", { bubbles: true }));
-    await settle();
+    await settle(24, 15);
     assert.equal(document.querySelectorAll(".row").length, 0);
     assert.match(document.querySelector(".inspector").textContent, /No match/);
   });
