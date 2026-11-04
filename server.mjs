@@ -16,7 +16,7 @@
 //   - no third party requests are made at all
 
 import { createServer } from "node:http";
-import { readFile, writeFile, mkdir, stat } from "node:fs/promises";
+import { readFile, writeFile, mkdir, stat, rm } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { extname, join, normalize, relative, resolve } from "node:path";
 import { randomBytes } from "node:crypto";
@@ -43,6 +43,7 @@ import { parseAuthenticatorExport } from "./src/core/authenticator.js";
 import { authImportToCandidates, looksLikeAuthenticator } from "./src/core/authimport.js";
 import { newPairingSecret, formatCode, parseCode, verify, codeList, deviceLabel } from "./src/core/pairing.js";
 import { load as loadEnv } from "./src/core/env.mjs";
+import { SyncStore, toBlob } from "./src/sync/store.mjs";
 
 const ROOT = resolve(import.meta.dirname);
 const WEB = join(ROOT, "src", "web");
@@ -51,6 +52,9 @@ const WEB = join(ROOT, "src", "web");
 // vault lost to an update is not recoverable, so the location is settable.
 const VAULT_DIR = process.env.HASP_VAULT_DIR ? resolve(process.env.HASP_VAULT_DIR) : join(ROOT, ".vault");
 const VAULT_FILE = join(VAULT_DIR, "vault.json");
+// The sync store lives beside the vault. It holds other devices' ciphertext, so it
+// is kept to 0600 like the vault file itself.
+const SYNC_FILE = join(VAULT_DIR, "sync.json");
 const PORT = Number(process.env.PORT || process.argv.find((a) => a.startsWith("--port="))?.split("=")[1] || 3000);
 // Read .env before anything consults process.env. A value already in the real
 // environment wins, so a shell variable overrides a file.
@@ -80,6 +84,34 @@ const MAX_BODY = 8 * 1024 * 1024;
 
 /** One vault for the preview. */
 let vault = null;
+
+/**
+ * The sync store. Loaded at boot; a missing file is an empty store, and a corrupt
+ * one stops the process rather than silently discarding another device's data.
+ */
+const syncStore = new SyncStore({
+  read: async () => {
+    try {
+      return await readFile(SYNC_FILE, "utf8");
+    } catch (err) {
+      if (err.code === "ENOENT") return "";
+      throw err;
+    }
+  },
+  write: async (text) => {
+    await mkdir(VAULT_DIR, { recursive: true });
+    await writeFile(SYNC_FILE, text, { mode: 0o600 });
+  },
+});
+
+/**
+ * The pairing this device holds for pushing its own records out.
+ *
+ * Server side, "pairing" means "this vault may write to a sync store". The token is
+ * a write credential for that store, not a key: it cannot read a secret, because a
+ * secret is ciphertext the store has no key for.
+ */
+let syncPairing = null;
 
 /** A pending pairing and the paired devices. Memory only: a restart revokes all. */
 let pairing = null;
@@ -124,6 +156,15 @@ async function bootVault() {
     // persisted vault is reopened with the sample password. A real deployment
     // unlocks per session instead.
     vault = await Vault.unlock(stored, SAMPLE_PASSWORD);
+    // A sync pairing is recorded beside the vault so a restart does not silently
+    // stop the other device from syncing. A missing or unreadable record just means
+    // this machine is not paired, which is a safe default.
+    try {
+      const pairing = JSON.parse(await readFile(join(VAULT_DIR, "sync-pairing.json"), "utf8"));
+      if (pairing?.vaultId === vault.meta.id && pairing?.token) syncPairing = pairing;
+    } catch {
+      // Not paired yet.
+    }
     console.log("vault: reopened from .vault/vault.json");
     return;
   }
@@ -295,7 +336,13 @@ async function route(req, res) {
   // cookie and never gets one: it proves possession of a pairing secret instead.
   // Everything else under /api/ still requires the session.
   const pairingRoute = path === "/api/pair" || path === "/api/pair/codes";
-  if (path.startsWith("/api/") && !s && !pairingRoute) return json(res, 401, { error: "Locked" });
+  // Sync carries a store token, not a session cookie. A second device has no
+  // session here by design: it proves itself to the store, and the records it
+  // receives are ciphertext it can only open with the vault key it already has.
+  // Locking this behind a cookie would mean a device could not sync while this
+  // machine was locked, which is exactly when it is most useful.
+  const syncRoute = path === "/api/sync/pull" || path === "/api/sync/push";
+  if (path.startsWith("/api/") && !s && !pairingRoute && !syncRoute) return json(res, 401, { error: "Locked" });
 
   // Logo proxy. The logo.dev secret key lives in the environment and is used here,
   // on the server. The browser only ever asks this route for a hostname, so the key
@@ -531,6 +578,120 @@ async function route(req, res) {
     const before = devices.length;
     devices = devices.filter((d) => d.id !== id);
     return json(res, 200, { removed: before - devices.length });
+  }
+
+  /* ---- sync */
+
+  /**
+   * Start syncing this vault out, or return the pairing already in place.
+   *
+   * The token is shown once, because the store only keeps a hash of it. Losing it
+   * means rotating, which cuts off whatever device held the old one.
+   */
+  if (path === "/api/sync/start" && method === "POST") {
+    if (!anyLiveSession()) return json(res, 423, { error: "The vault is locked." });
+    if (syncPairing) {
+      // Repeating the call is safe, and a second device on this machine copies the
+      // same pairing rather than minting a token nobody wrote down.
+      return json(res, 200, { ...syncPairing, reused: true });
+    }
+    const token = await syncStore.createVault(vault.meta.id);
+    syncPairing = {
+      vaultId: vault.meta.id,
+      token,
+      url: `http://${HOST === "0.0.0.0" ? "127.0.0.1" : HOST}:${PORT}`,
+      seq: vault.seq,
+    };
+    await mkdir(VAULT_DIR, { recursive: true });
+    await writeFile(join(VAULT_DIR, "sync-pairing.json"), JSON.stringify(syncPairing, null, 2), { mode: 0o600 });
+    await syncStore.flushed;
+    return json(res, 200, { ...syncPairing, reused: false });
+  }
+
+  /** What this device's pairing is, without the token. */
+  if (path === "/api/sync/status" && method === "GET") {
+    if (!anyLiveSession()) return json(res, 423, { error: "The vault is locked." });
+    if (!syncPairing) return json(res, 200, { paired: false });
+    return json(res, 200, {
+      paired: true,
+      vaultId: syncPairing.vaultId,
+      url: syncPairing.url,
+      // Never the token. The caller that minted it is the only caller that sees it.
+      seq: syncPairing.seq,
+      held: syncStore.count(vault.meta.id),
+      fingerprint: syncStore.fingerprint(vault.meta.id),
+    });
+  }
+
+  /** Forgetting the pairing leaves the store's copy in place, deliberately. */
+  if (path === "/api/sync/pairing" && method === "DELETE") {
+    if (!anyLiveSession()) return json(res, 423, { error: "The vault is locked." });
+    const had = Boolean(syncPairing);
+    syncPairing = null;
+    try {
+      await rm(join(VAULT_DIR, "sync-pairing.json"), { force: true });
+    } catch {
+      // Nothing to remove.
+    }
+    return json(res, 200, { removed: had ? 1 : 0 });
+  }
+
+  /**
+   * One device's whole job in a single call: take what is new, then send what is
+   * new. This is what the other machine calls. It is local by default and refuses
+   * a request from outside unless HASP_HOST was set to allow the network.
+   */
+  if (path === "/api/sync/round" && method === "POST") {
+    if (!anyLiveSession()) return json(res, 423, { error: "The vault is locked." });
+    if (!syncPairing) return json(res, 409, { error: "This vault is not syncing yet." });
+    const payload = await body(req);
+    const since = Number(payload?.since);
+    let pulled;
+    try {
+      pulled = syncStore.pull(syncPairing.vaultId, syncPairing.token, Number.isFinite(since) ? since : 0);
+    } catch (err) {
+      return json(res, err.status || 500, { error: err.message });
+    }
+    let applied = 0;
+    let rejected = 0;
+    for (const record of pulled.records) {
+      try {
+        vault.applyRemote(record);
+        applied += 1;
+      } catch {
+        rejected += 1;
+      }
+    }
+    // Everything local goes out. The store refuses anything it already has, so a
+    // resend is cheap and a divergence is a 409 rather than a silent overwrite.
+    const conflicts = [];
+    let pushed = 0;
+    // Only what changed since this machine last finished a round. Sending the whole
+    // vault every time would work, since the store refuses a repeat, but it would
+    // also mean re-uploading every record on every round.
+    const sent = syncPairing.sent || {};
+    for (const record of vault.rawRecords()) {
+      if ((record.rev || 1) <= (sent[record.id] ?? 0)) continue;
+      try {
+        syncStore.push(syncPairing.vaultId, syncPairing.token, toBlob(record));
+        sent[record.id] = record.rev;
+        pushed += 1;
+      } catch (err) {
+        if (err.status === 409) conflicts.push({ id: record.id, local: record.rev, remote: err.current ?? 0 });
+      }
+    }
+    syncPairing.sent = sent;
+    await syncStore.flushed;
+    syncPairing.seq = vault.seq;
+    await writeFile(join(VAULT_DIR, "sync-pairing.json"), JSON.stringify(syncPairing, null, 2), { mode: 0o600 });
+    await persist();
+    return json(res, 200, {
+      pulled: { applied, rejected },
+      pushed,
+      conflicts,
+      seq: syncStore.seq(syncPairing.vaultId),
+      vaultSeq: vault.seq,
+    });
   }
 
   /* ---- export */

@@ -187,6 +187,62 @@ describe("session", () => {
     assert.equal(res.json.items.length, 0, `${word} matched, so values are being indexed`);
   });
 
+  test("sync starts, holds a token back, and refuses to run without a session", async () => {
+    const before = await call("/api/sync/status");
+    assert.equal(before.status, 200);
+    assert.equal(before.json.paired, false);
+
+    const started = await call("/api/sync/start", { method: "POST" });
+    assert.equal(started.status, 200);
+    assert.equal(typeof started.json.token, "string");
+    assert.ok(started.json.token.length >= 40, "the write token is long enough to matter");
+    assert.equal(started.json.vaultId.length > 0, true);
+
+    // The status route describes the pairing and never repeats the token, because a
+    // GET is the kind of thing that ends up in a log or a history entry.
+    const status = await call("/api/sync/status");
+    assert.equal(status.json.paired, true);
+    assert.equal(status.json.token, undefined);
+    assert.equal(JSON.stringify(status.json).includes(started.json.token), false);
+
+    // Starting again reuses the pairing rather than minting a token nobody wrote down.
+    const again = await call("/api/sync/start", { method: "POST" });
+    assert.equal(again.json.reused, true);
+    assert.equal(again.json.token, started.json.token);
+  });
+
+  test("a sync round pushes the vault as ciphertext and holds nothing readable", async () => {
+    const round = await call("/api/sync/round", { method: "POST", body: { since: 0 } });
+    assert.equal(round.status, 200);
+    assert.ok(round.json.pushed >= 14, `expected the seeded set to go out, pushed ${round.json.pushed}`);
+    assert.deepEqual(round.json.conflicts, []);
+    assert.equal(round.json.pulled.rejected, 0);
+
+    // A second round with nothing changed must be quiet. Before the equal revision
+    // rule, every round reported the whole vault back to itself as conflicts.
+    const quiet = await call("/api/sync/round", { method: "POST", body: { since: 0 } });
+    assert.equal(quiet.json.pushed, 0);
+    assert.deepEqual(quiet.json.conflicts, []);
+  });
+
+  test("sync routes refuse a request with no session", async () => {
+    const started = await call("/api/sync/status", { useCookie: false });
+    assert.equal(started.status, 401);
+    const round = await call("/api/sync/round", { method: "POST", body: {}, useCookie: false });
+    assert.equal(round.status, 401);
+  });
+
+  test("forgetting the pairing stops the round and leaves the stored copy alone", async () => {
+    const before = await call("/api/sync/status");
+    assert.equal(before.json.paired, true);
+    const dropped = await call("/api/sync/pairing", { method: "DELETE" });
+    assert.equal(dropped.json.removed, 1);
+    const after = await call("/api/sync/status");
+    assert.equal(after.json.paired, false);
+    const round = await call("/api/sync/round", { method: "POST", body: { since: 0 } });
+    assert.equal(round.status, 409);
+  });
+
   test("every word of a query has to match", async () => {
     const both = await call("/api/state?q=stripe%20webhooks");
     const one = await call("/api/state?q=stripe");
