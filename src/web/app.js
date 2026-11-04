@@ -500,6 +500,43 @@ async function loadSync() {
     state.sync = { paired: false, held: 0, unknown: true };
   }
   renderSyncBody();
+  if (state.sync?.paired) {
+    try {
+      const { conflicts } = await api("/api/sync/conflicts");
+      state.conflicts = conflicts;
+    } catch {
+      state.conflicts = null;
+    }
+    renderConflicts();
+  }
+}
+
+/**
+ * The conflict log, under the sync panel.
+ *
+ * A conflict that only appears in a toast is gone in two and a half seconds, which
+ * is not a log. This renders what the server kept, and it names each item by looking
+ * the id up locally, because the server never had a name to give.
+ */
+function renderConflicts() {
+  const host = $("[data-sync-conflicts]");
+  if (!host) return;
+  const list = state.conflicts;
+  if (!list || !list.length) {
+    host.innerHTML = `<p class="hint">No conflicts. Nothing has been changed on two machines at once.</p>`;
+    return;
+  }
+  host.innerHTML = `<ul class="activity" style="border-top:none;padding-top:0">
+    ${list
+      .map((c) => {
+        const item = state.items.find((i) => i.id === c.id);
+        const name = item ? item.name : "an item you have since deleted";
+        return `<li><span>${esc(name)} changed on two machines</span><span>${relTime(c.at)}</span></li>`;
+      })
+      .join("")}
+  </ul>
+  <p class="hint">The write that arrived first was kept. Nothing was merged, because the
+    store cannot read either side.</p>`;
 }
 
 function renderSettings() {
@@ -564,7 +601,9 @@ function renderSettings() {
         <div data-sync-body style="margin-top:12px">
           <p class="hint">Checking…</p>
         </div>
-        <p class="hint" style="margin-top:12px">A store token is a write credential. Anyone
+        <h2 style="margin-top:22px">Conflicts</h2>
+        <div data-sync-conflicts style="margin-top:10px"><p class="hint">Checking…</p></div>
+        <p class="hint" style="margin-top:16px">A store token is a write credential. Anyone
           holding it can write junk into the store, though not read a secret. Rotating it
           cuts off the old device.</p>
       </div>

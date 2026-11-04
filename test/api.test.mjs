@@ -232,6 +232,32 @@ describe("session", () => {
     assert.equal(round.status, 401);
   });
 
+  test("a healthy round reports no conflicts and logs none", async () => {
+    // The pull marks what it received as already sent. Before that, every record the
+    // round had just taken in was offered straight back and refused at an equal
+    // revision, so a clean round reported the whole vault as conflicts with itself.
+    const started = await call("/api/sync/start", { method: "POST" });
+    assert.ok(started.json.vaultId);
+    const first = await call("/api/sync/round", { method: "POST", body: { since: 0 } });
+    assert.equal(first.status, 200);
+    const second = await call("/api/sync/round", { method: "POST", body: { since: 0 } });
+    assert.deepEqual(second.json.conflicts, [], "a repeat round is not a conflict");
+    const log = await call("/api/sync/conflicts");
+    assert.equal(log.status, 200);
+    assert.deepEqual(log.json.conflicts, []);
+  });
+
+  test("the conflict log describes an entry by id and never by name", async () => {
+    const log = await call("/api/sync/conflicts");
+    const text = JSON.stringify(log.json);
+    // No item name appears, because the store never had one to give.
+    const items = (await call("/api/state")).json.items;
+    for (const item of items.slice(0, 5)) {
+      assert.equal(text.includes(item.name), false, `${item.name} leaked into the log`);
+    }
+    assert.ok(Array.isArray(log.json.conflicts));
+  });
+
   test("forgetting the pairing stops the round and leaves the stored copy alone", async () => {
     const before = await call("/api/sync/status");
     assert.equal(before.json.paired, true);

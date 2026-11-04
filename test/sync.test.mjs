@@ -454,6 +454,37 @@ describe("sync client", () => {
     assert.equal(second.fingerprint("v1"), first.fingerprint("v1"));
   });
 
+  test("a store on a file remembers its records after a reload", async () => {
+    // Before this, the server never called load() at boot, so a restart answered a
+    // pull with nothing at all. That reads like "there is nothing to sync" rather
+    // than "the store forgot", and the second machine silently got no data.
+    let disk = "";
+    const io = { read: async () => disk, write: async (t) => { disk = t; } };
+    const first = new SyncStore(io);
+    const token = await first.createVault("v1");
+    const vault = await Vault.create({ name: "Test", password: SAMPLE_PASSWORD });
+    const client = new SyncClient({ vault, store: first, vaultId: "v1", token });
+    vault.addItem({ name: "Along for the ride", type: "api-key", value: "EXAMPLE-ride" });
+    client.push();
+    await first.flushed;
+
+    const second = new SyncStore(io);
+    await second.load();
+    assert.equal(second.has("v1"), true, "the vault is known after a reload");
+    assert.equal(second.count("v1"), 1, "and its records are still there");
+    assert.equal(second.pull("v1", token, 0).records.length, 1);
+  });
+
+  test("a store with no file is empty rather than broken", async () => {
+    const store = new SyncStore({ read: async () => "" });
+    await store.load();
+    assert.equal(store.has("anything"), false);
+    const fresh = new SyncStore({ read: async () => { throw Object.assign(new Error("nope"), { code: "ENOENT" }); } });
+    // A caller that means "missing" and a caller that means "broken" are different, so
+    // this one is expected to throw: only the server's reader maps ENOENT to empty.
+    await assert.rejects(() => fresh.load());
+  });
+
   test("a corrupt store file is reported rather than silently emptied", async () => {
     const store = new SyncStore({ read: async () => "{ not json" });
     await assert.rejects(() => store.load(), /JSON|Unexpected/i);
