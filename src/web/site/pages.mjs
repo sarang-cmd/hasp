@@ -15,7 +15,7 @@ export const home = () =>
     path: "/",
     title: "Hasp · A local-first vault for the keys you actually use",
     description:
-      "Hasp keeps API keys, backup codes and one-time codes in one encrypted vault on your own machine. No accounts, no sync, no network at runtime.",
+      "Hasp keeps API keys, backup codes and one-time codes in one encrypted vault on your own machine. No account, no hosted service, no request unless you sync.",
     body: `
 <section class="hero">
   <div class="wrap">
@@ -84,8 +84,12 @@ export const home = () =>
       <p class="body">There is no server to trust. The vault is one encrypted file. The
         interface is served by the same process that holds the key, and the process makes
         no outbound request at runtime.</p>
-      <p class="body">That also means no sync, no account recovery and no sharing. Those are
-        real costs. If you need them, Hasp is the wrong tool today.</p>
+      <p class="body">Sync is off until you turn it on, and it is a file on your own
+        machine rather than a service. When it is on, two devices exchange the same
+        ciphertext the vault already holds. Nothing is readable in transit, because
+        nothing readable is ever sent.</p>
+      <p class="body">There is still no account recovery and no sharing. Both need a party
+        that can hold something for you, and this product has none.</p>
     </div>
     <div>
       ${SAMPLE_NOTE}
@@ -131,6 +135,9 @@ export const product = () =>
       <div><dt>Copy</dt><dd>The clipboard clears after 30 seconds, and the timer is cancelled when the vault locks.</dd></div>
       <div><dt>Rotate</dt><dd>Replacing a value keeps the previous version, so a rotation is reversible.</dd></div>
       <div><dt>Search</dt><dd>Queries match a blind index built from keyed hashes, so the vault never stores the words you searched for.</dd></div>
+      <div><dt>Sync</dt><dd>Off by default. Two of your own devices exchange records that are already
+        ciphertext. The store sees the vault id, the record id, a revision, timestamps, the
+        item type and the blind index. It cannot read a name or a value, because it holds no key.</dd></div>
     </dl>
   </div>
 </section>
@@ -264,8 +271,8 @@ export const pricing = () =>
       <div><dt>Future pricing</dt><dd>Undecided. When there is a number it will appear here, in this list.</dd></div>
     </dl>
     <p class="body" style="margin-top:26px">If you need the key management features today, the
-      demonstration is complete and free. If you need sync, sharing or a hosted service,
-      Hasp does not offer them yet.</p>
+      demonstration is complete and free. Sync is included and is a file you run yourself.
+      If you need sharing, a hosted service or account recovery, Hasp does not offer them.</p>
   </div>
 </section>
 `,
@@ -317,10 +324,12 @@ export const about = () =>
 <section class="section">
   <div class="wrap measure">
     <h2>What is deliberately missing</h2>
-    <p class="body">Sync, accounts, sharing, a browser extension, a desktop app and a mobile
-      app. Each is a real product decision with a real cost, and each is listed on the
-      product page rather than implied by a screenshot.</p>
-    <p class="body">The shorter version: Hasp does one job on one machine, and it says so.</p>
+    <p class="body">Accounts, sharing, account recovery and a hosted service. Each needs a
+      company holding something on your behalf, and that is the thing this product is
+      built to avoid.</p>
+    <p class="body">Sync exists and is off by default. It moves ciphertext between your own
+      machines over your own network. It is not a service, there is nothing to sign up
+      for, and it stores no plaintext, because it has no key to read any.</p>
   </div>
 </section>
 `,
@@ -363,6 +372,29 @@ npm start</pre>
     <p class="body">Every candidate carries a confidence score. Anything under 70 percent
       goes to review before it is stored. A parsed import can be accepted once, and it
       expires after 30 minutes.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap measure">
+    <h2>Two machines, one vault</h2>
+    <p class="body">Start the server, unlock the vault, then call
+      <code>POST /api/sync/start</code>. It answers with a vault id and a write token,
+      and that token is shown once. The store keeps a hash of it, so a token that is not
+      written down cannot be recovered, only rotated.</p>
+    <p class="body">On the second machine, open the same vault file and point the sync
+      client at the first machine with that token. <code>POST /api/sync/round</code> takes
+      a <code>since</code> value and does both halves: it applies what is new, then sends
+      what is new. The reply carries the highest sequence number it reached, so the next
+      round asks only for what came after it.</p>
+    <p class="body">Everything in flight is a record the vault already stores encrypted.
+      The store sees the vault id, the record id, a revision, timestamps, the item type
+      and the blind index. It cannot read a name, a note or a value.</p>
+    <p class="body">When two machines change the same item from the same starting point,
+      both reach the same revision with different ciphertext. The store refuses the
+      second and reports it. Nothing is merged, because the store can read neither side.
+      The item stays as it was and the losing machine keeps its own copy until someone
+      decides.</p>
   </div>
 </section>
 

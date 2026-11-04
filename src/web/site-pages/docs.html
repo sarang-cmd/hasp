@@ -68,6 +68,29 @@ npm start</pre>
 
 <section class="section">
   <div class="wrap measure">
+    <h2>Two machines, one vault</h2>
+    <p class="body">Start the server, unlock the vault, then call
+      <code>POST /api/sync/start</code>. It answers with a vault id and a write token,
+      and that token is shown once. The store keeps a hash of it, so a token that is not
+      written down cannot be recovered, only rotated.</p>
+    <p class="body">On the second machine, open the same vault file and point the sync
+      client at the first machine with that token. <code>POST /api/sync/round</code> takes
+      a <code>since</code> value and does both halves: it applies what is new, then sends
+      what is new. The reply carries the highest sequence number it reached, so the next
+      round asks only for what came after it.</p>
+    <p class="body">Everything in flight is a record the vault already stores encrypted.
+      The store sees the vault id, the record id, a revision, timestamps, the item type
+      and the blind index. It cannot read a name, a note or a value.</p>
+    <p class="body">When two machines change the same item from the same starting point,
+      both reach the same revision with different ciphertext. The store refuses the
+      second and reports it. Nothing is merged, because the store can read neither side.
+      The item stays as it was and the losing machine keeps its own copy until someone
+      decides.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap measure">
     <h2>Keys worth knowing</h2>
     <dl class="list">
       <div><dt>Search</dt><dd><code>/</code> or <code>Cmd K</code> focuses the search field.</dd></div>
