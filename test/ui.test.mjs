@@ -28,6 +28,7 @@ function bundle() {
   const appearance = readFileSync(join(WEB, "appearance.js"), "utf8");
   const icons = readFileSync(join(WEB, "icons.js"), "utf8");
   const app = readFileSync(join(WEB, "app.js"), "utf8");
+  const tour = readFileSync(join(WEB, "tour.js"), "utf8");
   const strip = (src) => src.replace(/^import[^;]+;$/gm, "").replace(/^export /gm, "");
   // app.js imports the brand index as JSON. The strip above removes the import
   // statement, so the binding has to be injected the same way the modules are,
@@ -37,8 +38,9 @@ function bundle() {
     `const BRAND_INDEX = ${brandIndex};`,
     strip(appearance),
     strip(icons),
+    strip(tour),
     strip(app),
-    "window.__app = { boot, state, render, refresh, cancelClipboardClear, cancelIdleWarning, lockGateUntil, tileFor };",
+    "window.__app = { boot, state, render, refresh, cancelClipboardClear, cancelIdleWarning, lockGateUntil, tileFor, startTour, typeInto, Tour };",
   ].join("\n;\n");
 }
 const BUNDLE = bundle();
@@ -128,7 +130,10 @@ async function open() {
   // Feed the real source to the real engine.
   try {
     window.eval(BUNDLE);
-    await window.__app.boot();
+    // Suppress the first-visit walkthrough: it writes a full page layer on a timer,
+  // and several cases below assert on document-wide selectors.
+  window.localStorage.setItem("hasp.tour", "skipped");
+  await window.__app.boot();
   } catch (e) {
     window.__bootError = e;
   }
@@ -343,6 +348,87 @@ describe("vault view", () => {
     document.querySelector("[data-reveal]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await settle();
     assert.match(document.querySelector("[data-secret]").innerHTML, /•/, "hidden again");
+  });
+
+  test("the tour dims, highlights, and refuses to advance past an unmet gate", async () => {
+    // The whole point of the walkthrough is that the user does something. If the
+    // Next button advances regardless of the step's condition, it is a slideshow
+    // with extra steps, which is the thing the brief asked not to build.
+    const { startTour, Tour } = window.__app;
+    assert.equal(typeof startTour, "function", "the tour is not reachable");
+
+    // Drive the engine directly with a step whose gate starts closed, so the test
+    // measures the rule rather than the current copy.
+    let opened = false;
+    let finished = null;
+    const target = document.createElement("div");
+    target.id = "tour-fixture";
+    document.querySelector("#app").appendChild(target);
+
+    const t = new Tour(
+      [
+        { target: () => document.getElementById("tour-fixture"), title: "First", body: "one", action: "Go" },
+        { target: () => document.getElementById("tour-fixture"), title: "Second", body: "two", done: () => opened, waiting: "Waiting", autoAdvance: false },
+      ],
+      { onFinish: (r) => (finished = r) }
+    );
+    t.start();
+
+    // Only the fixture's layer should exist. The app also offers the tour on a first
+    // visit; a second layer here means that timer fired during the test and the
+    // assertions below would be reading someone else's dialog.
+    const layers = document.querySelectorAll(".tour");
+    assert.equal(layers.length, 1, `expected one tour layer, found ${layers.length}`);
+    assert.ok(document.querySelector(".tour"), "the dim layer was not created");
+    assert.ok(document.querySelector(".tour-hole"), "the highlight hole was not created");
+    assert.equal(document.body.classList.contains("is-touring"), true, "the page is not marked as touring");
+    assert.match(document.querySelector(".tour-step").textContent, /Step 1 of 2/);
+    assert.equal(document.querySelector(".tour-demo").textContent, "Sample data");
+
+    t.next(); // step 1 has no gate, so it advances
+    assert.match(document.querySelector(".tour-step").textContent, /Step 2 of 2/);
+
+    // The gate is closed. Next must not move, and must say why.
+    t.next();
+    assert.match(document.querySelector(".tour-step").textContent, /Step 2 of 2/, "advanced past a closed gate");
+    assert.equal(document.querySelector("[data-tour-next]").textContent, "Waiting");
+
+    // Open the gate. The step sets autoAdvance:false, so the watcher must enable
+    // the button without moving on its own; that is the behaviour being asserted.
+    opened = true;
+    t.watch();
+    await until(() => document.querySelector("[data-tour-next]")?.textContent !== "Waiting", "the button became ready", 4000);
+    assert.notEqual(document.querySelector(".tour-step").textContent, "Step 3 of 2");
+    assert.match(document.querySelector(".tour-step").textContent, /Step 2 of 2/, "it advanced without being told to");
+    t.next();
+    await until(() => t.done, "the tour completed after its gate opened", 4000);
+    assert.equal(finished, "complete");
+    assert.equal(document.querySelector(".tour"), null, "the layer outlived the tour");
+    assert.equal(document.body.classList.contains("is-touring"), false, "the page is still locked");
+
+    target.remove();
+    // Leave nothing behind for the next case, and stop a pending auto-start.
+    t.finish("skipped");
+    window.__app.startTour()?.finish?.("skipped");
+    document.querySelectorAll(".tour").forEach((el) => el.remove());
+    document.body.classList.remove("is-touring");
+  });
+
+  test("typeInto types visibly and the field reacts", async () => {
+    // The demo values are typed one character at a time through the native setter
+    // and an input event, so the app sees the same events a person would produce.
+    const { typeInto } = window.__app;
+    const host = document.createElement("div");
+    host.innerHTML = `<input id="typer">`;
+    const input = host.querySelector("input");
+    const seen = [];
+    input.addEventListener("input", () => seen.push(input.value.length));
+
+    await typeInto(input, "demo-key", { perChar: 1 });
+    assert.equal(input.value, "demo-key");
+    assert.ok(seen.length >= 8, `expected per-character events, saw ${seen.length}`);
+    // The intermediate states must have been partial, not the whole string at once.
+    assert.equal(seen[0], 1, "the first event should carry one character");
   });
 
   test("an unknown brand falls back to a letter, not a broken image", async () => {

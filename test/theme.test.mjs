@@ -206,3 +206,77 @@ describe("contrast helper", () => {
     assert.equal(contrast("rgba(0, 0, 0, 0)", "#ffffff").toFixed(2), "1.00");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Layout cascade.
+//
+// A specificity fight in CSS is invisible to every other test in this suite: the
+// markup is correct, the tokens are correct, and the element still renders wrong.
+// The live app squashed every company wordmark into a 17px square because
+// `:root[data-dir] .tile img` outranked `.tile--wordmark img`, while the generated
+// screenshots looked right because the renderer never applies the stylesheet.
+//
+// These check the specific collision that caused it, and that any future rule
+// targeting `.tile img` under a direction selector excludes the sized variants.
+
+const APP_CSS = readFileSync(new URL("../src/web/app.css", import.meta.url), "utf8");
+
+/** The declaration blocks whose selector matches a predicate. */
+function rules(predicate) {
+  const out = [];
+  const re = /([^{}]+)\{([^}]*)\}/g;
+  let m;
+  while ((m = re.exec(APP_CSS))) {
+    const selector = m[1].replace(/\/\*[\s\S]*?\*\//g, "").trim();
+    if (selector && !selector.startsWith("@") && predicate(selector)) out.push({ selector, body: m[2] });
+  }
+  return out;
+}
+
+describe("tile sizing cascade", () => {
+  test("a direction rule targeting tile images excludes the sized variants", () => {
+    // Any selector that sets an img width inside a tile, scoped to a direction,
+    // must not also match .tile--wide or .tile--wordmark: those exist to give a
+    // wordmark the width it needs.
+    // Note the shape of this predicate: the width check belongs on the rule body,
+    // not the selector. An earlier version had `&& /width:/.test("")` inside the
+    // selector predicate, which is always false, so the test passed while the bug
+    // was still present. Checked by reverting the fix and watching it fail.
+    const risky = rules((sel) => sel.includes("[data-dir=") && sel.includes(".tile") && sel.includes("img")).filter(
+      (r) => /(?:^|;|\s)width\s*:/.test(r.body)
+    );
+
+    for (const rule of risky) {
+      assert.ok(
+        rule.selector.includes(":not(.tile--wide)") || rule.selector.includes(":not(.tile--wordmark)"),
+        `"${rule.selector}" sets an image width inside a direction scope without excluding the wide variants. ` +
+          `It will override .tile--wide/.tile--wordmark, which have lower specificity.`
+      );
+    }
+  });
+
+  test("wordmarks are wider than plain tiles", () => {
+    const plain = rules((s) => s.trim() === ".tile").map((r) => /width:\s*([\d.]+)px/.exec(r.body)?.[1]).find(Boolean);
+    const word = rules((s) => s.trim() === ".tile--wordmark").map((r) => /width:\s*([\d.]+)px/.exec(r.body)?.[1]).find(Boolean);
+    assert.ok(plain, "no base .tile width");
+    assert.ok(word, "no .tile--wordmark width");
+    assert.ok(Number(word) > Number(plain), `wordmark slot (${word}px) must be wider than a tile (${plain}px)`);
+  });
+
+  test("the wordmark image keeps an aspect ratio near 3:1", () => {
+    // The vendored wordmarks are on a 512-wide grid at roughly 66 to 323 tall. A
+    // box far from that shape re-squashes them, which is the bug this guards.
+    const rule = rules((s) => s.trim() === ".tile--wordmark img")[0];
+    assert.ok(rule, "no .tile--wordmark img rule");
+    const w = Number(/width:\s*([\d.]+)px/.exec(rule.body)?.[1]);
+    const h = Number(/height:\s*([\d.]+)px/.exec(rule.body)?.[1]);
+    assert.ok(w / h >= 2.5 && w / h <= 3.5, `wordmark image is ${w}x${h}, ratio ${(w / h).toFixed(2)}`);
+  });
+
+  test("a long brand name cannot push the row apart", () => {
+    // The row is a flex container; without min-width:0 on the text column a long
+    // name prevents ellipsis and forces the row wider than the list.
+    assert.match(APP_CSS, /\.row-main\s*\{[^}]*min-width:\s*0/, ".row-main needs min-width: 0");
+    assert.match(APP_CSS, /\.row-name\s*\{[^}]*text-overflow:\s*ellipsis/, ".row-name needs ellipsis");
+  });
+});

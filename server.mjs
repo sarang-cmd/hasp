@@ -25,6 +25,16 @@ import { Vault } from "./src/core/vault.js";
 import { KDF } from "./src/core/kdf.js";
 import { totp } from "./src/core/totp.js";
 import { COOKIE, createSession, readSession, forget, remainingMs, IDLE_MS } from "./src/core/session.js";
+
+/**
+ * The SHA-256 of the inline boot script in src/web/index.html, as a CSP source.
+ *
+ * The theme must be applied before the stylesheet paints, and a module cannot run
+ * that early, so this is the one inline script in the product. A hash keeps
+ * script-src free of 'unsafe-inline' while allowing exactly that script and
+ * nothing else. test/api.test.mjs recomputes it from the file.
+ */
+const BOOT_SCRIPT_HASH = "sha256-5HaEXYMUkXbx4DS4MeQcLSFLZ+2BzFEEjY/UJ5fXHsg=";
 import { retryAfter, recordFailure, recordSuccess } from "./src/core/throttle.js";
 import { parseKeepJson, parseKeepHtml, parseOtpExport, parseCsv, parseNote, findDuplicates } from "./src/core/parse.js";
 import { seedVault, SAMPLE_PASSWORD } from "./src/core/seed.js";
@@ -103,7 +113,12 @@ const MIME = {
 
 const SECURITY_HEADERS = {
   "content-security-policy":
-    "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'",
+    // script-src pins the one inline script to a hash. index.html paints the
+    // surface before first paint, which cannot wait for a module, and the previous
+    // policy of plain 'self' silently blocked it, so the flash it exists to prevent
+    // happened on every load. The hash is checked by test/api.test.mjs against the
+    // file, so editing that script without updating this fails the build.
+    `default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' '${BOOT_SCRIPT_HASH}'; font-src 'self'; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'`,
   "x-content-type-options": "nosniff",
   "referrer-policy": "no-referrer",
   "x-frame-options": "DENY",

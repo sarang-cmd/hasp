@@ -414,7 +414,12 @@ code, kbd, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums;
   border: none; border-radius: var(--r-sm);
   box-shadow: var(--lift);
 }
-:root[data-dir="nightshift"] .tile img { width: 17px; height: 17px; }
+/* Nightshift draws the tile as a raised well, so the mark sits a little smaller
+   inside it. The :not() clauses are load-bearing: :root[data-dir] .tile img is
+   more specific than .tile--wordmark img, so without them this rule silently
+   overrode the wide and wordmark sizes and forced every company wordmark back
+   into a 17px square. That is what squashed the Groq mark onto the row text. */
+:root[data-dir="nightshift"] .tile:not(.tile--wide):not(.tile--wordmark) img { width: 17px; height: 17px; }
 
 /* Environment tags. Each environment also carries a glyph, so the tag is
  * readable without colour: plan section 8's "never rely on colour alone". */
@@ -751,4 +756,55 @@ body.is-modal-open { overflow: hidden; }
   .list-head span:nth-child(2), .row > *:nth-child(2) { display: none; }
   .page { padding: 14px; }
   .fieldgrid, .row-2 { grid-template-columns: 1fr; }
+}
+
+/* ------------------------------------------------------------------ tour */
+/* A full page dim with a transparent hole over the target, plus an anchor card.
+ * The dim is a single element with a huge spread shadow rather than four panels,
+ * so it follows the hole on every scroll without seams. */
+
+.tour { position: fixed; inset: 0; z-index: 90; pointer-events: none; }
+body.is-touring { overflow: hidden; }
+
+.tour-hole {
+  position: absolute;
+  border-radius: var(--r-sm, 4px);
+  /* The shadow paints everything outside the hole. */
+  box-shadow: 0 0 0 100vmax rgba(10, 12, 16, 0.62);
+  outline: 1.5px solid var(--accent);
+  outline-offset: 0;
+  transition: left 0.22s ease, top 0.22s ease, width 0.22s ease, height 0.22s ease, opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.tour-card {
+  position: absolute;
+  width: min(384px, calc(100vw - 32px));
+  background: var(--panel);
+  border: 1.5px solid var(--ink);
+  box-shadow: var(--shadow-pop);
+  padding: 16px 18px 14px;
+  pointer-events: auto;
+  transition: left 0.22s ease, top 0.22s ease;
+}
+:root[data-dir="nightshift"] .tour-card { border: none; border-radius: var(--r); box-shadow: var(--lift), var(--shadow-pop); }
+
+.tour-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.tour-step { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--mut); }
+/* The sample data badge is not decoration: every value the tour types is invented,
+   and a reader is entitled to know that before they act on it. */
+.tour-demo {
+  margin-left: auto; font-family: var(--mono); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase;
+  color: var(--accent); border: 1px solid currentColor; padding: 1px 6px;
+}
+:root[data-dir="nightshift"] .tour-demo { border: none; border-radius: 999px; padding: 2px 7px; background: var(--accent-soft); }
+
+.tour-title { font-family: var(--display); font-size: 17px; font-weight: 600; letter-spacing: -0.01em; }
+.tour-body { font-size: 12.5px; line-height: 1.5; color: var(--ink-2); margin-top: 6px; }
+.tour-acts { display: flex; align-items: center; gap: 8px; margin-top: 14px; }
+.tour-acts .btn--primary { margin-left: auto; }
+.tour-acts .is-gated { opacity: 0.62; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tour-hole, .tour-card { transition: none; }
 }
