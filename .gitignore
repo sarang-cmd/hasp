@@ -1,0 +1,12 @@
+node_modules/
+.vercel/
+.DS_Store
+*.log
+
+# Local vault data. Never commit a vault, real or synthetic.
+.vault/
+data/*.json
+!data/sample-vault.json
+
+# Screenshot scratch
+tmp/

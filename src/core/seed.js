@@ -1,0 +1,233 @@
+// Sample vault.
+//
+// Every value here is invented. The names, hosts and brands match the twelve
+// mockup directions so the built product and the design boards describe the same
+// vault. Plan section 12: never place a real secret in a fixture.
+
+import { generateSet } from "./backup-codes.js";
+
+export const SAMPLE_PASSWORD = "foundry-nightshift-2026";
+
+const HOUR = 3600 * 1000;
+const DAY = 24 * HOUR;
+const ago = (ms) => new Date(Date.now() - ms).toISOString();
+
+/** One-time code secrets, invented, all valid base32. */
+const TOTP = {
+  github: "JBSWY3DPEHPK3PXP",
+  aws: "GEZDGNBVGY3TQOJQ",
+};
+
+/**
+ * Populate a vault with the sample set.
+ * @param {import("./vault.js").Vault} vault
+ */
+export async function seedVault(vault) {
+  const items = [
+    {
+      name: "Groq production",
+      brand: "groq",
+      service: "Groq",
+      host: "console.groq.com",
+      type: "api-key",
+      env: "prod",
+      value: "EXAMPLE-groq-prod-sample-00000000",
+      notes: "Rotate every 90 days. Owner, Sarang. Used by the ingest worker.",
+      tags: ["ingest", "llm"],
+      lastUsedAt: ago(2 * HOUR),
+      createdAt: ago(280 * DAY),
+    },
+    {
+      name: "Groq staging",
+      brand: "groq",
+      service: "Groq",
+      host: "console.groq.com",
+      type: "api-key",
+      env: "staging",
+      value: "EXAMPLE-groq-staging-sample-0000",
+      notes: "Same account as production. Separate key so a leak does not cross.",
+      tags: ["staging"],
+      lastUsedAt: ago(6 * DAY),
+      createdAt: ago(190 * DAY),
+    },
+    {
+      name: "Stripe secret key",
+      brand: "stripe",
+      service: "Stripe",
+      host: "dashboard.stripe.com",
+      type: "api-key",
+      env: "live",
+      value: "EXAMPLE-stripe-live-sample-0000",
+      notes: "Invoicing only. Never in the browser bundle.",
+      tags: ["billing"],
+      lastUsedAt: ago(1 * DAY),
+      createdAt: ago(420 * DAY),
+    },
+    {
+      name: "GitHub token, deploys",
+      brand: "github",
+      service: "GitHub",
+      host: "github.com",
+      type: "api-key",
+      env: "prod",
+      value: "EXAMPLE-github-token-sample-000000",
+      notes: "Fine grained. Contents read and metadata read on two repositories only.",
+      tags: ["ci"],
+      lastUsedAt: ago(4 * DAY),
+      createdAt: ago(300 * DAY),
+    },
+    {
+      name: "Neon connection string",
+      brand: "neon",
+      service: "Neon",
+      host: "console.neon.tech",
+      type: "api-key",
+      env: "prod",
+      value: "postgres://user:EXAMPLE@ep-sample-123456.eu-central-1.aws.neon.tech/main",
+      notes: "Pooled connection. Read replica lives at the -ro host.",
+      tags: ["database"],
+      lastUsedAt: ago(3 * HOUR),
+      createdAt: ago(160 * DAY),
+    },
+    {
+      name: "Cloudflare R2 token",
+      brand: "cloudflare",
+      service: "Cloudflare",
+      host: "dash.cloudflare.com",
+      type: "api-key",
+      env: "prod",
+      value: "EXAMPLE-cloudflare-sample-0000",
+      notes: "Bucket sarang-assets. Object read and write, no bucket admin.",
+      tags: ["storage"],
+      lastUsedAt: ago(7 * DAY),
+      createdAt: ago(240 * DAY),
+    },
+    {
+      name: "Linear API key",
+      brand: "linear",
+      service: "Linear",
+      host: "linear.app",
+      type: "api-key",
+      env: "prod",
+      value: "EXAMPLE-linear-sample-000000",
+      notes: "Issue creation from the support form.",
+      tags: ["issues"],
+      lastUsedAt: ago(5 * DAY),
+      createdAt: ago(210 * DAY),
+    },
+    {
+      name: "Resend API key",
+      brand: "resend",
+      service: "Resend",
+      host: "resend.com",
+      type: "api-key",
+      env: "prod",
+      value: "EXAMPLE-resend-sample-0000",
+      notes: "Transactional email only. Domain is verified, DKIM rotated in March.",
+      tags: ["email"],
+      lastUsedAt: ago(14 * DAY),
+      createdAt: ago(230 * DAY),
+    },
+    {
+      name: "GitHub recovery codes",
+      brand: "github",
+      service: "GitHub",
+      host: "github.com",
+      type: "backup-codes",
+      env: "",
+      value: "",
+      codes: generateSet({ count: 10, prefix: "GH" }).map((code, n) => ({
+        code,
+        usedAt: n < 2 ? ago((n + 1) * 40 * DAY) : null,
+      })),
+      notes: "Printed copy in the desk drawer. Two used after the token reset.",
+      tags: ["recovery"],
+      lastUsedAt: null,
+      createdAt: ago(365 * DAY),
+    },
+    {
+      name: "Google recovery codes",
+      brand: "google",
+      service: "Google",
+      host: "myaccount.google.com",
+      type: "backup-codes",
+      env: "",
+      value: "",
+      codes: generateSet({ count: 10 }).map((code, n) => ({ code, usedAt: n === 0 ? ago(90 * DAY) : null })),
+      notes: "Studio account. One used when the phone was replaced.",
+      tags: ["recovery"],
+      lastUsedAt: null,
+      createdAt: ago(400 * DAY),
+    },
+    {
+      name: "GitHub 2FA",
+      brand: "github",
+      service: "GitHub",
+      host: "github.com",
+      type: "totp",
+      env: "",
+      value: "",
+      totp: { secret: TOTP.github, issuer: "GitHub", account: "sarang@studio.dev", digits: 6, step: 30 },
+      notes: "Backup codes exist separately. Both should be replaced together.",
+      tags: ["2fa"],
+      lastUsedAt: ago(3 * 60 * 1000),
+      createdAt: ago(380 * DAY),
+    },
+    {
+      name: "AWS root 2FA",
+      brand: "amazon",
+      service: "Amazon Web Services",
+      host: "aws.amazon.com",
+      type: "totp",
+      env: "",
+      value: "",
+      totp: { secret: TOTP.aws, issuer: "AWS", account: "root", digits: 6, step: 30 },
+      notes: "Root account, rarely used. Hardware key is the primary factor.",
+      tags: ["2fa", "root"],
+      lastUsedAt: ago(1 * DAY),
+      createdAt: ago(500 * DAY),
+    },
+    {
+      name: "Vercel build hook",
+      brand: "vercel",
+      service: "Vercel",
+      host: "vercel.com",
+      type: "api-key",
+      env: "prod",
+      value: "EXAMPLE-vercel-sample-0000",
+      notes: "Deploy hook for the marketing site only.",
+      tags: ["deploy"],
+      lastUsedAt: ago(11 * DAY),
+      createdAt: ago(120 * DAY),
+    },
+    {
+      name: "Supabase service role",
+      brand: "supabase",
+      service: "Supabase",
+      host: "supabase.com",
+      type: "api-key",
+      env: "staging",
+      value: "EXAMPLE-supabase-sample-00000000",
+      notes: "Bypasses row level security. Staging project only, never production.",
+      tags: ["staging", "database"],
+      lastUsedAt: ago(2 * DAY),
+      createdAt: ago(140 * DAY),
+    },
+    {
+      name: "Rate limit notes",
+      brand: "",
+      service: "",
+      host: "",
+      type: "note",
+      env: "",
+      value: "",
+      notes:
+        "Groq ingest is capped at 30 requests a second. Stripe webhooks retry seven times over three days. Neon compute suspends after five minutes idle, which adds about a second to the first request.",
+      tags: ["runbook"],
+      lastUsedAt: null,
+      createdAt: ago(60 * DAY),
+    },
+  ];
+
+  for (const item of items) vault.addItem(item);
+}

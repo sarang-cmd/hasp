@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en" data-dir="foundry" data-mode="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hasp, the four surfaces</title>
+<meta name="description" content="Foundry and Nightshift, each with light and dark, rendered from the same components and the same tokens.">
+<meta name="theme-color" content="#e8e6e0">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="app.css">
+<style>
+  /* Review page only. Every block below carries a direction and a mode, so each
+     frame is driven by exactly the tokens the product uses. */
+  body { background: var(--bg); }
+  .board { max-width: 1560px; margin: 0 auto; padding: 34px 22px 80px; }
+  .board-head { margin-bottom: 26px; }
+  .board-head h1 { font-size: 26px; letter-spacing: -0.02em; }
+  .board-head p { color: var(--mut); max-width: 62ch; margin-top: 8px; font-size: 13px; }
+
+  .row-of { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin-bottom: 26px; }
+  @media (max-width: 1100px) { .row-of { grid-template-columns: minmax(0, 1fr); } }
+
+  .frame { border: 1px solid var(--line); overflow: hidden; }
+  .frame-bar {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 10px 14px; background: var(--panel-2); border-bottom: 1px solid var(--line-2);
+  }
+  .frame-bar strong { font-size: 13px; font-weight: 600; }
+  .frame-bar span { font-size: 11.5px; color: var(--mut); margin-left: auto; font-family: var(--mono); }
+  .frame-body { padding: 18px; }
+
+  /* A miniature of the dashboard, built from the real classes. */
+  .mini { display: grid; grid-template-columns: 168px minmax(0, 1fr); min-height: 424px; background: var(--bg); }
+  .mini .rail { padding: 14px 10px; gap: 14px; height: auto; position: static; }
+  .mini .rail-nav a { height: 32px; font-size: 12px; padding: 0 8px; }
+  .mini .rail-ws { font-size: 11px; }
+  .mini .main { background: var(--bg); }
+  .mini .topbar { padding: 12px 16px 10px; }
+  .mini .titleblock h1 { font-size: 17px; }
+  .mini .filters { padding: 8px 16px; }
+  .mini .chip { height: 26px; font-size: 11px; padding: 0 9px; }
+  .mini .list-head { grid-template-columns: minmax(0,1fr) 84px 74px; height: 28px; padding: 0 16px; font-size: 10px; gap: 8px; }
+  .mini .row { grid-template-columns: minmax(0,1fr) 84px 74px; padding: 0 16px; min-height: 40px; gap: 8px; }
+  .mini .row-name { font-size: 12px; }
+  .mini .row-sub { font-size: 10.5px; }
+  .mini .row .rwhen { font-size: 11px; }
+  .mini .tile { width: 26px; height: 26px; }
+  .mini .tile img { width: 15px; height: 15px; }
+  .mini .rtype { display: none; }
+  .mini .tag { height: 19px; font-size: 9.5px; padding: 0 6px; }
+  .mini .avatar { width: 26px; height: 26px; font-size: 10px; }
+
+  /* The inspector, beside the list, at review scale. */
+  .mini-side { display: grid; grid-template-columns: minmax(0,1fr) 208px; }
+  .mini-side .inspector { padding: 13px; gap: 11px; position: static; max-height: none; }
+  .mini-side .insp-head h2 { font-size: 14px; }
+  .mini-side .flabel { font-size: 9px; margin-bottom: 4px; }
+  .mini-side .secret { padding: 6px 6px 6px 8px; }
+  .mini-side .secret code { font-size: 10.5px; }
+  .mini-side .btn--small { height: 24px; padding: 0 7px; font-size: 10.5px; }
+  .mini-side .why p, .mini-side .activity li { font-size: 10.5px; }
+  .mini-side .totp-code { font-size: 21px; letter-spacing: 0.1em; }
+  .mini-side .totp-card { padding: 11px; }
+  .mini-side .hint { font-size: 9.5px; margin-top: 4px; }
+  .mini-side .insp-foot { gap: 6px; }
+
+  /* Component strip: the parts where a direction shows its construction. */
+  .parts { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
+  .parts-label { width: 100%; font-size: 10.5px; color: var(--mut); text-transform: uppercase; letter-spacing: 0.05em; }
+  :root[data-dir] .parts-label, [data-dir] .parts-label { letter-spacing: 0.05em; }
+
+  .note { font-size: 11.5px; color: var(--mut); margin-top: 10px; line-height: 1.5; }
+  .note b { color: var(--ink-2); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="board">
+  <header class="board-head">
+    <h1>The four surfaces</h1>
+    <p>
+      Foundry and Nightshift, each with light and dark. Every frame below is the same markup and the
+      same components; only the tokens change. Foundry carries structure with rules and an ink header.
+      Nightshift carries it with paired shadows, so the controls sit in the surface instead of on top
+      of it. Both keep the contrast floor checked in <code>test/theme.test.mjs</code>.
+    </p>
+  </header>
+  <div id="frames"></div>
+</div>
+
+<script type="module" src="themes.js"></script>
+</body>
+</html>
