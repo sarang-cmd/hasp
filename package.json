@@ -24,7 +24,9 @@
     "check": "npm run site && npm test",
     "test:import": "node --experimental-strip-types --test test/authimport.test.mjs",
     "ext": "node tools/package-extension.mjs",
-    "test:ext": "node --test test/extension.test.mjs"
+    "test:ext": "node --test test/extension.test.mjs",
+    "desktop": "electron .",
+    "test:desktop": "node --test test/desktop.test.mjs"
   },
   "license": "UNLICENSED",
   "devDependencies": {
@@ -33,5 +35,6 @@
     "jsdom": "^25.0.1",
     "sharp": "^0.35.5",
     "wawoff2": "^1.0.2"
-  }
+  },
+  "main": "desktop/main.js"
 }
