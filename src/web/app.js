@@ -53,6 +53,10 @@ async function api(path, options = {}) {
   }
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+  // Any successful request counts as activity on the server too, so the warning
+  // is rearmed from now rather than left ticking from boot.
+  cancelIdleWarning();
+  scheduleIdleWarning(state.meta?.idleMs);
   return body;
 }
 
@@ -473,13 +477,13 @@ function render() {
 /* ---------------------------------------------------------------- toast */
 
 let toastTimer;
-function toast(message) {
+function toast(message, { sticky = false } = {}) {
   const el = $(".toast");
   if (!el) return;
   el.textContent = message;
   el.classList.add("is-on");
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove("is-on"), 2600);
+  if (!sticky) toastTimer = setTimeout(() => el.classList.remove("is-on"), 2600);
 }
 
 /* ---------------------------------------------------------------- clipboard */
@@ -1080,6 +1084,30 @@ async function start() {
   });
 }
 
+/* ------------------------------------------------------------- idle warning */
+
+// The server drops a session after an idle period, and until now the client found
+// out by being reloaded mid-action, losing whatever was typed. This warns a minute
+// before that happens, and gives one action that keeps the session alive.
+//
+// It is a courtesy, not a security control: the server decides, always. The timer
+// here only decides when to say something.
+
+let idleTimer = null;
+
+/** Milliseconds until the session lapses, from the last request this page made. */
+function scheduleIdleWarning(idleMs) {
+  clearTimeout(idleTimer);
+  if (!idleMs) return;
+  const warnAt = Math.max(idleMs - 60_000, 0);
+  idleTimer = setTimeout(() => toast("Still there? This vault locks in a minute.", { sticky: true }), warnAt);
+}
+
+export function cancelIdleWarning() {
+  clearTimeout(idleTimer);
+  idleTimer = null;
+}
+
 export async function boot() {
   const initial = resolve(store, { prefersDark: matchMedia("(prefers-color-scheme: dark)").matches });
   applyAppearance({ dir: initial.dir, mode: initial.mode });
@@ -1092,6 +1120,7 @@ export async function boot() {
     return;
   }
   await start();
+  scheduleIdleWarning(state.meta.idleMs);
 }
 
 export { state, render, refresh, hotp, base32Decode };

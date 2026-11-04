@@ -33,7 +33,7 @@ function bundle() {
     strip(appearance),
     strip(icons),
     strip(app),
-    "window.__app = { boot, state, render, refresh, cancelClipboardClear };",
+    "window.__app = { boot, state, render, refresh, cancelClipboardClear, cancelIdleWarning };",
   ].join("\n;\n");
 }
 const BUNDLE = bundle();
@@ -338,6 +338,13 @@ describe("vault view", () => {
     document.querySelector("[data-reveal]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await settle();
     assert.match(document.querySelector("[data-secret]").innerHTML, /•/, "hidden again");
+  });
+
+  test("the idle warning can be cancelled without throwing", async () => {
+    // The warning is a courtesy; the server is what actually ends a session. The
+    // client side must never throw while clearing it, including when unarmed.
+    assert.equal(typeof window.__app.cancelIdleWarning, "function");
+    assert.doesNotThrow(() => window.__app.cancelIdleWarning());
   });
 
   test("copying twice leaves only the newest timer running", async () => {
