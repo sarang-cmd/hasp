@@ -3,8 +3,10 @@
 // Two independent choices, four combinations. Both persist in localStorage so a
 // reload keeps the surface you were reading. Nothing here touches the vault.
 //
-// Order of resolution on load: stored choice, then the OS preference for mode,
-// then Foundry light as the product default.
+// Order of resolution on load: stored choice, then the OS preference for mode.
+// Nightshift is the default direction: it is the surface the product leads with.
+// Mode follows the system, so a first visit lands on Nightshift light or dark
+// according to the reader's own setting.
 
 export const DIRECTIONS = ["foundry", "nightshift"];
 export const MODES = ["light", "dark"];
@@ -36,8 +38,10 @@ function write(store, key, value) {
  * @param {{prefersDark: boolean}} env
  * @returns {{dir: string, mode: string, stored: boolean}}
  */
+export const DEFAULT_DIRECTION = "nightshift";
+
 export function resolve(store, env = { prefersDark: false }) {
-  const dir = read(store, KEY_DIR, DIRECTIONS) || "foundry";
+  const dir = read(store, KEY_DIR, DIRECTIONS) || DEFAULT_DIRECTION;
   const storedMode = read(store, KEY_MODE, MODES);
   const mode = storedMode || (env.prefersDark ? "dark" : "light");
   return { dir, mode, stored: storedMode !== null };

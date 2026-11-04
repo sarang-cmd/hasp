@@ -166,12 +166,22 @@ after(async () => {
 });
 
 describe("appearance", () => {
-  test("resolve falls back to Foundry light with no stored choice", async () => {
-    const { resolve } = await import("../src/web/appearance.js");
+  test("resolve falls back to Nightshift, with the mode the system asks for", async () => {
+    const { resolve, DEFAULT_DIRECTION } = await import("../src/web/appearance.js");
     const map = new Map();
     const store = { getItem: (k) => map.get(k) ?? null, setItem: (k, v) => map.set(k, v) };
-    assert.deepEqual(resolve(store, { prefersDark: false }), { dir: "foundry", mode: "light", stored: false });
-    assert.deepEqual(resolve(store, { prefersDark: true }), { dir: "foundry", mode: "dark", stored: false });
+    assert.equal(DEFAULT_DIRECTION, "nightshift", "Nightshift is the surface the product leads with");
+    assert.deepEqual(resolve(store, { prefersDark: false }), { dir: "nightshift", mode: "light", stored: false });
+    assert.deepEqual(resolve(store, { prefersDark: true }), { dir: "nightshift", mode: "dark", stored: false });
+  });
+
+  test("the shell and the resolver agree on the default", async () => {
+    // index.html paints the surface before the module runs, from an inline copy of
+    // this logic. If the two ever disagree, a first visit flashes the wrong surface.
+    const { DEFAULT_DIRECTION } = await import("../src/web/appearance.js");
+    const html = readFileSync(join(WEB, "index.html"), "utf8");
+    assert.match(html, new RegExp(`dir = d === "foundry" \\|\\| d === "nightshift" \\? d : "${DEFAULT_DIRECTION}"`));
+    assert.match(html, /<html lang="en" data-dir="nightshift"/);
   });
 
   test("a stored choice wins over the system preference", async () => {
@@ -191,7 +201,7 @@ describe("appearance", () => {
       ["hasp.mode", "sepia"],
     ]);
     const store = { getItem: (k) => map.get(k) ?? null, setItem: (k, v) => map.set(k, v) };
-    assert.deepEqual(resolve(store, { prefersDark: false }), { dir: "foundry", mode: "light", stored: false });
+    assert.deepEqual(resolve(store, { prefersDark: false }), { dir: "nightshift", mode: "light", stored: false });
   });
 
   test("a blocked storage throws nothing", async () => {
@@ -204,8 +214,8 @@ describe("appearance", () => {
         throw new Error("blocked");
       },
     };
-    assert.deepEqual(resolve(store, { prefersDark: false }), { dir: "foundry", mode: "light", stored: false });
-    assert.doesNotThrow(() => choose(store, { dir: "nightshift", mode: "dark" }));
+    assert.deepEqual(resolve(store, { prefersDark: false }), { dir: "nightshift", mode: "light", stored: false });
+    assert.doesNotThrow(() => choose(store, { dir: "foundry", mode: "dark" }));
   });
 
   test("attributes produce the pair the stylesheet reads", async () => {

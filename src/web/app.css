@@ -104,6 +104,10 @@ code, kbd, .mono { font-family: var(--mono); font-variant-numeric: tabular-nums;
 
 .rail-brand { display: flex; align-items: center; gap: 9px; padding: 2px 6px 0; }
 .rail-brand svg { flex: none; }
+
+/* Solid glyphs are one shape, so aligning them against type needs the baseline
+   nudged: a filled square sits optically higher than a stroked outline. */
+.btn svg, .rail-nav a svg, .seg svg { transform: translateY(-0.5px); }
 .rail-brand strong {
   font-family: var(--display);
   font-size: 17px;

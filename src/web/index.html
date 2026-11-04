@@ -1,15 +1,44 @@
 <!doctype html>
-<html lang="en" data-dir="foundry" data-mode="light">
+<html lang="en" data-dir="nightshift" data-mode="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Hasp, vault</title>
 <meta name="description" content="Hasp is a vault for API keys, backup codes and one-time codes. Foundry and Nightshift directions, each with light and dark.">
-<meta name="theme-color" content="#e8e6e0">
+<meta name="theme-color" content="#14161a">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="description" content="A local-first vault for the keys you actually use. Nightshift and Foundry, light and dark, one master password.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="hasp">
+<meta property="og:description" content="The keys you actually use, in one sealed place. Nightshift and Foundry, light and dark.">
+<meta property="og:image" content="https://raw.githubusercontent.com/sarang-cmd/hasp/main/docs/screens/social.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="hasp">
+<meta name="twitter:description" content="The keys you actually use, in one sealed place.">
+<meta name="twitter:image" content="https://raw.githubusercontent.com/sarang-cmd/hasp/main/docs/screens/social.png">
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="app.css">
 <script type="module" src="main.js"></script>
+<script>
+// Set the surface before first paint, so a reload does not flash the wrong one.
+// This mirrors appearance.js: stored choice, then the system mode, Nightshift by
+// default. It is inline because it must run before the stylesheet paints.
+(function () {
+  try {
+    var d = localStorage.getItem("hasp.direction");
+    var m = localStorage.getItem("hasp.mode");
+    var dir = d === "foundry" || d === "nightshift" ? d : "nightshift";
+    var mode = m === "light" || m === "dark" ? m : (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.dataset.dir = dir;
+    document.documentElement.dataset.mode = mode;
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = mode === "dark" ? "#14161a" : "#e4e8ee";
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <div id="app"><div class="gate"><div class="gate-card"><p class="sub">Loading the vault…</p></div></div></div>
