@@ -89,6 +89,10 @@ export class Vault {
   #vaultKey;
   #items;
   #meta;
+  // A vault wide counter, separate from each record's own `version` and `rev`.
+  // It answers "what changed since revision N" for the whole vault, which is what
+  // a device needs in order to ask for the delta rather than the whole file.
+  #seq;
 
   /**
    * @param {object} meta stored metadata: id, name, kdf, salt, wrapped, nonce, createdAt
@@ -99,6 +103,19 @@ export class Vault {
     this.#meta = meta;
     this.#vaultKey = vaultKey;
     this.#items = items;
+    this.#seq = Number.isInteger(meta.seq) ? meta.seq : 0;
+  }
+
+  /** The vault wide change counter. Every write moves it. */
+  get seq() {
+    return this.#seq;
+  }
+
+  /** Take the next value in the vault wide sequence. */
+  #nextSeq() {
+    this.#seq += 1;
+    this.#meta.seq = this.#seq;
+    return this.#seq;
   }
 
   /**
@@ -178,6 +195,14 @@ export class Vault {
     const record = {
       id,
       type: payload.type,
+      // `version` is bound into the ciphertext as additional data, so it can only
+      // change by re-sealing the payload. A delete or a restore changes the record
+      // without touching the payload, so the two cannot share one counter.
+      // `rev` is the record's own revision: it moves on every change, including the
+      // ones that leave the ciphertext alone. Sync compares it, and it is the only
+      // number the server is allowed to see.
+      rev: 1,
+      seq: this.#nextSeq(),
       version,
       createdAt: now,
       updatedAt: now,
@@ -217,6 +242,8 @@ export class Vault {
     this.#items.set(id, {
       ...record,
       type: payload.type,
+      rev: (record.rev || 1) + 1,
+      seq: this.#nextSeq(),
       version,
       updatedAt: new Date().toISOString(),
       wrappedKey,
@@ -227,18 +254,79 @@ export class Vault {
     });
   }
 
+  /**
+   * Accept a record that arrived from somewhere else, after proving it is genuine.
+   *
+   * The check is not a signature. It is a decryption: unwrapping the record's key
+   * needs the vault key, and opening the payload needs the vault id, the item id
+   * and the version, all three bound into the ciphertext as additional data. A
+   * record from another vault fails, a record with a doctored id fails, and a
+   * record whose bytes were edited fails. That is why an untrusted server can be
+   * handed this data and cannot smuggle anything in.
+   *
+   * @param {object} record a record as it came over the wire
+   * @returns {"applied"|"ignored"} ignored when the local copy is already newer
+   */
+  applyRemote(record) {
+    if (!record || typeof record !== "object") throw new Error("a record is required");
+    if (!record.id || !record.ciphertext || !record.nonce || !record.wrappedKey) {
+      throw new Error("a record is missing its ciphertext");
+    }
+    const local = this.#items.get(record.id);
+    if (local && (local.rev || 1) >= (record.rev || 1)) return "ignored";
+    if (Number.isInteger(record.seq) && record.seq > this.#seq) {
+      this.#seq = record.seq;
+      this.#meta.seq = record.seq;
+    }
+
+    // Prove it before storing it. A failed open throws, and nothing is written.
+    const itemKey = unwrapKey(this.#vaultKey, record.wrappedKey);
+    open(itemKey, record, { vaultId: this.#meta.id, itemId: record.id, version: record.version });
+
+    this.#items.set(record.id, {
+      id: record.id,
+      type: record.type,
+      rev: record.rev,
+      // The record carries the sender's place in the vault sequence. Adopting it
+      // keeps the counter monotonic across devices, so the next local write does
+      // not reuse a number another device already used.
+      seq: Number.isInteger(record.seq) ? record.seq : this.#nextSeq(),
+      version: record.version,
+      createdAt: record.createdAt,
+      updatedAt: record.updatedAt,
+      deletedAt: record.deletedAt ?? null,
+      wrappedKey: record.wrappedKey,
+      ciphertext: record.ciphertext,
+      nonce: record.nonce,
+      searchTokens: Array.isArray(record.searchTokens) ? record.searchTokens : [],
+    });
+    return "applied";
+  }
+
   /** Soft delete. A deleted item keeps its record so the change can sync. */
   deleteItem(id) {
     const record = this.#items.get(id);
     if (!record) throw new Error("item not found");
-    this.#items.set(id, { ...record, deletedAt: new Date().toISOString() });
+    this.#items.set(id, {
+      ...record,
+      rev: (record.rev || 1) + 1,
+      seq: this.#nextSeq(),
+      deletedAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
   }
 
   /** Restore a soft deleted item. */
   restoreItem(id) {
     const record = this.#items.get(id);
     if (!record) throw new Error("item not found");
-    this.#items.set(id, { ...record, deletedAt: null });
+    this.#items.set(id, {
+      ...record,
+      rev: (record.rev || 1) + 1,
+      seq: this.#nextSeq(),
+      deletedAt: null,
+      updatedAt: new Date().toISOString(),
+    });
   }
 
   /**
