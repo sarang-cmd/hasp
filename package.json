@@ -17,7 +17,9 @@
     "test:e2e": "node --experimental-strip-types --test --test-force-exit test/api.test.mjs test/ui.test.mjs",
     "icons": "node tools/icons.mjs",
     "render": "node tools/render.mjs",
-    "brands:index": "node tools/brandindex.mjs"
+    "brands:index": "node tools/brandindex.mjs",
+    "test:auth": "node --experimental-strip-types --test test/authenticator.test.mjs",
+    "test:logo": "node --experimental-strip-types --test test/logodev.test.mjs test/env.test.mjs"
   },
   "license": "UNLICENSED",
   "devDependencies": {
