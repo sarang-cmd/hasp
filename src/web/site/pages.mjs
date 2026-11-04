@@ -52,7 +52,7 @@ export const home = () =>
       <img class="shot" src="/screens/nightshift-dark.png"
         alt="The Hasp vault in Nightshift dark mode, showing a list of API keys with an inspector pane showing a masked secret and a live one-time code."
         width="1280" height="820" loading="lazy" decoding="async">
-      <p class="shot-caption">Nightshift, the default surface. Rendered from the real components.</p>
+      <p class="shot-caption">Nightshift, the default surface. Drawn from the real tokens and typefaces.</p>
     </div>
   </div>
 </section>
