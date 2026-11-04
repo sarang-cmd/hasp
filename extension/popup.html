@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hasp</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <!-- Everything below is rendered by popup.js. The shell is static so the popup
+         opens with the right dimensions before any request is made. -->
+    <header class="bar">
+      <span class="wordmark">Hasp</span>
+      <span class="state" id="state" role="status">Connecting</span>
+      <button class="icon" type="button" id="open-vault" title="Open the vault">Vault</button>
+    </header>
+
+    <main id="view" aria-live="polite"></main>
+
+    <footer class="foot">
+      <span id="foot-note">Codes are computed by the vault, not here.</span>
+      <button class="link" type="button" id="settings">Settings</button>
+    </footer>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>
