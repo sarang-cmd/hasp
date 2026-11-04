@@ -21,6 +21,7 @@
     "test:auth": "node --experimental-strip-types --test test/authenticator.test.mjs",
     "test:logo": "node --experimental-strip-types --test test/logodev.test.mjs test/env.test.mjs",
     "site": "node tools/site.mjs",
+    "sync": "node tools/sync.mjs",
     "check": "npm run site && npm test",
     "test:import": "node --experimental-strip-types --test test/authimport.test.mjs",
     "ext": "node tools/package-extension.mjs",

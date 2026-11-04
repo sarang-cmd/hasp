@@ -341,7 +341,7 @@ async function route(req, res) {
   // receives are ciphertext it can only open with the vault key it already has.
   // Locking this behind a cookie would mean a device could not sync while this
   // machine was locked, which is exactly when it is most useful.
-  const syncRoute = path === "/api/sync/pull" || path === "/api/sync/push";
+  const syncRoute = path === "/api/sync/pull";
   if (path.startsWith("/api/") && !s && !pairingRoute && !syncRoute) return json(res, 401, { error: "Locked" });
 
   // Logo proxy. The logo.dev secret key lives in the environment and is used here,
@@ -606,6 +606,29 @@ async function route(req, res) {
     await writeFile(join(VAULT_DIR, "sync-pairing.json"), JSON.stringify(syncPairing, null, 2), { mode: 0o600 });
     await syncStore.flushed;
     return json(res, 200, { ...syncPairing, reused: false });
+  }
+
+  /**
+   * The route another machine calls to fetch records.
+   *
+   * The token is checked by the store, not by this process, and the vault id has to
+   * match a vault the store knows. There is no session here: the caller is a second
+   * machine that has the token and no cookie, and what it receives is ciphertext it
+   * cannot open without the vault key it already has.
+   */
+  if (path === "/api/sync/pull" && method === "POST") {
+    const payload = await body(req);
+    const since = Number(payload?.since);
+    try {
+      const answer = syncStore.pull(
+        String(payload?.vaultId || ""),
+        String(payload?.token || ""),
+        Number.isFinite(since) && since > 0 ? since : 0
+      );
+      return json(res, 200, answer);
+    } catch (err) {
+      return json(res, err.status || 500, { error: err.message });
+    }
   }
 
   /** What this device's pairing is, without the token. */
