@@ -149,6 +149,58 @@ describe("session", () => {
     assert.ok(groq.why.includes("console.groq.com"), "every item carries its suggestion reason");
   });
 
+  test("a query searches the blind index and reports that it did", async () => {
+    const res = await call("/api/state?q=stripe");
+    assert.equal(res.status, 200);
+    assert.equal(res.json.query, "stripe");
+    assert.equal(res.json.indexed, true);
+    assert.ok(res.json.items.length > 0);
+    assert.ok(res.json.items.length < 15, "a query narrows the set");
+    // Every row has to be there for a reason, so the reason is checked and not
+    // just the count.
+    for (const item of res.json.items) {
+      const hay = `${item.name} ${item.service} ${item.host} ${(item.tags || []).join(" ")} ${item.notes || ""}`;
+      assert.ok(/stripe/i.test(hay), `stripe matched ${item.name} with no visible reason`);
+    }
+  });
+
+  test("an empty query returns everything and does not claim to have searched", async () => {
+    const all = await call("/api/state");
+    const empty = await call("/api/state?q=");
+    assert.equal(empty.status, 200);
+    assert.equal(empty.json.items.length, all.json.items.length);
+    assert.equal(empty.json.indexed, undefined);
+  });
+
+  test("a query does not reach the plaintext of a value", async () => {
+    // The blind index covers names, services, hosts, issuers, accounts, tags and
+    // notes. It does not cover the secret itself. A word that appears only in a
+    // stored value must not match, because indexing a secret would let anyone who
+    // can query the index enumerate the secrets one guess at a time.
+    const all = (await call("/api/state")).json.items;
+    const target = all.find((i) => i.type === "api-key");
+    assert.ok(target && target.value, "the sample set has an api key with a value");
+    const word = String(target.value).replace(/[^\p{L}\p{N}]+/gu, "").slice(4, 12);
+    assert.ok(word.length >= 4);
+    const res = await call(`/api/state?q=${encodeURIComponent(word)}`);
+    assert.equal(res.status, 200);
+    assert.equal(res.json.items.length, 0, `${word} matched, so values are being indexed`);
+  });
+
+  test("every word of a query has to match", async () => {
+    const both = await call("/api/state?q=stripe%20webhooks");
+    const one = await call("/api/state?q=stripe");
+    assert.ok(both.json.items.length <= one.json.items.length);
+    assert.ok(both.json.items.length > 0, "one row carries both words in its note");
+  });
+
+  test("a query that matches nothing comes back empty rather than as an error", async () => {
+    const res = await call("/api/state?q=zenith");
+    assert.equal(res.status, 200);
+    assert.deepEqual(res.json.items, []);
+    assert.equal(res.json.indexed, true);
+  });
+
   test("a one-time code item arrives with a live code", async () => {
     const res = await call("/api/state");
     const totpItem = res.json.items.find((i) => i.type === "totp");
