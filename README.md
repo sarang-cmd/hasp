@@ -44,7 +44,7 @@ below the floor. The palette cannot drift quietly.
 ```
 npm install
 npm start            # http://localhost:3000
-npm test             # 463 cases
+npm test             # 480 cases
 ```
 
 Node 22 or newer. No database, no environment variables, no network at runtime.
@@ -86,6 +86,11 @@ Stated plainly, because the header above says "sealed" and that word has a floor
 - **No accounts, no sharing, no account recovery.** A password you lose is a vault
   you lose. There is no party that can reset it, which is the point and also the
   cost.
+- **Sync has a command line and a panel, and no background process.** `npm run sync`
+  runs one pull on a second machine. Nothing schedules it. If you want two machines
+  kept level, run it, or put it in cron. A machine that has never held the vault file
+  cannot start, because sync moves ciphertext between copies of one vault and does
+  not create the first copy.
 - **Sync is a file, not a service.** `src/sync/` moves ciphertext between your own
   machines. It is off until you start it, and it keeps the vault id, record ids,
   revisions, timestamps, item types and the blind index. It cannot read a name or a
@@ -112,7 +117,7 @@ server.mjs            one node:http server, static files + JSON API, no dependen
 src/core/             kdf, crypto, wrap, vault, totp, backup codes, parsers, seed
 src/web/              the client: tokens, components, app, themes page, brands, fonts
 src/web/heroicons/    vendored Heroicons solid, MIT, licence beside them
-test/                 463 cases: crypto, TOTP, parsers, contrast, API, and the real client in jsdom
+test/                 480 cases: crypto, TOTP, parsers, contrast, API, and the real client in jsdom
 tools/                icon and brand generation, the renderer, the Playwright capture
 docs/BRAND.md         the identity: mark, wordmark, colour, clear space
 ```
