@@ -1,0 +1,23 @@
+{
+  "name": "hasp",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A vault for API keys, backup codes and one-time codes. Foundry and Nightshift directions, each with light and dark.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.6.0"
+  },
+  "scripts": {
+    "dev": "node --watch-path=src --watch-path=app server.mjs --port=3000",
+    "start": "node server.mjs",
+    "test": "node --experimental-strip-types --test --test-force-exit test/*.test.mjs",
+    "brands": "node tools/brands.mjs",
+    "png": "node tools/shoot.mjs",
+    "test:core": "node --experimental-strip-types --test test/core.test.mjs test/totp.test.mjs test/parse.test.mjs test/theme.test.mjs",
+    "test:e2e": "node --experimental-strip-types --test --test-force-exit test/api.test.mjs test/ui.test.mjs"
+  },
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "jsdom": "^25.0.1"
+  }
+}

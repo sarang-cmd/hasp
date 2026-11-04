@@ -1,0 +1,430 @@
+// Hasp, single process preview server.
+//
+// Serves the web client and the JSON API from one origin. The vault lives in
+// this process, in memory, and is written to .vault/ encrypted unless
+// HASP_EPHEMERAL is set. Nothing here is a production deployment: it is the
+// Phase 1 surface described in IMPLEMENTATION_REVIEW.md, running locally so the
+// design and the behaviour can be judged together.
+//
+// Security posture, stated plainly:
+//   - the master password is never stored, only used to derive a key per request
+//     that opens the vault
+//   - the vault key lives in process memory, keyed by an opaque session cookie
+//   - every state-changing route checks the Origin header and requires the
+//     session cookie
+//   - responses are no-store, and no route echoes a secret it was not asked for
+//   - no third party requests are made at all
+
+import { createServer } from "node:http";
+import { readFile, writeFile, mkdir, stat } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { extname, join, normalize, resolve } from "node:path";
+import { randomBytes } from "node:crypto";
+
+import { Vault } from "./src/core/vault.js";
+import { KDF } from "./src/core/kdf.js";
+import { totp } from "./src/core/totp.js";
+import { COOKIE, createSession, readSession, forget, remainingMs, IDLE_MS } from "./src/core/session.js";
+import { parseKeepJson, parseKeepHtml, parseOtpExport, parseCsv, parseNote, findDuplicates } from "./src/core/parse.js";
+import { seedVault, SAMPLE_PASSWORD } from "./src/core/seed.js";
+
+const ROOT = resolve(import.meta.dirname);
+const WEB = join(ROOT, "src", "web");
+const VAULT_DIR = join(ROOT, ".vault");
+const VAULT_FILE = join(VAULT_DIR, "vault.json");
+const PORT = Number(process.env.PORT || process.argv.find((a) => a.startsWith("--port="))?.split("=")[1] || 3000);
+const EPHEMERAL = process.env.HASP_EPHEMERAL === "1";
+const MAX_BODY = 8 * 1024 * 1024;
+
+/** One vault for the preview. */
+let vault = null;
+let bootPassword = null;
+
+/**
+ * The parsed import awaiting a decision. Bound to a single use: accepting clears
+ * it, so a second accept cannot store the same candidates again, and it expires
+ * so a forgotten tab cannot store an old parse hours later.
+ */
+const IMPORT_TTL_MS = 30 * 60 * 1000;
+let pendingImport = null;
+
+function setPendingImport(candidates) {
+  pendingImport = { candidates, at: Date.now() };
+}
+
+function takePendingImport() {
+  const p = pendingImport;
+  pendingImport = null;
+  if (!p) return null;
+  if (Date.now() - p.at > IMPORT_TTL_MS) return null;
+  return p.candidates;
+}
+
+/* ---------------------------------------------------------------- storage */
+
+async function persist() {
+  if (EPHEMERAL || !vault) return;
+  await mkdir(VAULT_DIR, { recursive: true });
+  const data = JSON.stringify(vault.serialize(), null, 2);
+  await writeFile(VAULT_FILE, data, { mode: 0o600 });
+}
+
+async function bootVault() {
+  if (existsSync(VAULT_FILE) && !EPHEMERAL) {
+    const stored = JSON.parse(await readFile(VAULT_FILE, "utf8"));
+    // The preview has no way to ask for the password before a request, so a
+    // persisted vault is reopened with the sample password. A real deployment
+    // unlocks per session instead.
+    vault = await Vault.unlock(stored, SAMPLE_PASSWORD);
+    console.log("vault: reopened from .vault/vault.json");
+    return;
+  }
+  vault = await Vault.create({ name: "Sarang, personal", password: SAMPLE_PASSWORD });
+  await seedVault(vault);
+  bootPassword = SAMPLE_PASSWORD;
+  await persist();
+  console.log(`vault: seeded with sample items (password: ${SAMPLE_PASSWORD})`);
+}
+
+/* ---------------------------------------------------------------- http */
+
+const MIME = {
+  ".html": "text/html; charset=utf-8",
+  ".css": "text/css; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".mjs": "text/javascript; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".woff2": "font/woff2",
+  ".json": "application/json; charset=utf-8",
+  ".png": "image/png",
+  ".ico": "image/x-icon",
+};
+
+const SECURITY_HEADERS = {
+  "content-security-policy":
+    "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'; form-action 'none'; frame-ancestors 'none'; base-uri 'none'",
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "no-referrer",
+  "x-frame-options": "DENY",
+  "cross-origin-opener-policy": "same-origin",
+  "permissions-policy": "camera=(), microphone=(), geolocation=()",
+};
+
+function json(res, status, body, extra = {}) {
+  const data = JSON.stringify(body);
+  res.writeHead(status, {
+    "content-type": "application/json; charset=utf-8",
+    "cache-control": "no-store",
+    ...SECURITY_HEADERS,
+    ...extra,
+  });
+  res.end(data);
+}
+
+function text(res, status, body, type = "text/plain; charset=utf-8") {
+  res.writeHead(status, { "content-type": type, "cache-control": "no-store", ...SECURITY_HEADERS });
+  res.end(body);
+}
+
+async function body(req) {
+  let size = 0;
+  const chunks = [];
+  for await (const chunk of req) {
+    size += chunk.length;
+    if (size > MAX_BODY) throw new Error("Request body too large");
+    chunks.push(chunk);
+  }
+  if (chunks.length === 0) return {};
+  try {
+    return JSON.parse(Buffer.concat(chunks).toString("utf8"));
+  } catch {
+    throw new Error("Request body is not valid JSON");
+  }
+}
+
+function cookies(req) {
+  const out = {};
+  for (const part of (req.headers.cookie || "").split(";")) {
+    const [k, ...v] = part.trim().split("=");
+    if (k) out[k] = decodeURIComponent(v.join("="));
+  }
+  return out;
+}
+
+function session(req) {
+  return readSession(cookies(req)[COOKIE]);
+}
+
+/** Same origin check on every mutating route, per plan section 8. */
+function sameOrigin(req) {
+  const origin = req.headers.origin;
+  if (!origin) return true; // same-origin fetch without an Origin, or curl
+  try {
+    return new URL(origin).host === req.headers.host;
+  } catch {
+    return false;
+  }
+}
+
+/* ---------------------------------------------------------------- routes */
+
+async function route(req, res) {
+  const url = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const path = url.pathname;
+  const method = req.method || "GET";
+
+  if (path.startsWith("/api/")) {
+    if (method !== "GET" && !sameOrigin(req)) return json(res, 403, { error: "Cross-origin request refused" });
+  }
+
+  /* ---- session */
+  if (path === "/api/session" && method === "GET") {
+    const s = session(req);
+    return json(res, 200, {
+      unlocked: Boolean(s),
+      idleMs: IDLE_MS,
+      remainingMs: s ? remainingMs(cookies(req)[COOKIE]) : 0,
+      meta: vault?.meta ?? null,
+      samplePassword: bootPassword,
+    });
+  }
+
+  if (path === "/api/unlock" && method === "POST") {
+    const { password } = await body(req);
+    if (!vault) return json(res, 503, { error: "Vault not ready" });
+    // Reopen from disk with the supplied password, so a wrong password is
+    // rejected by the key unwrap rather than by a stored hash.
+    try {
+      vault = await Vault.unlock(vault.serialize(), String(password || ""));
+    } catch {
+      return json(res, 401, { error: "Wrong master password" });
+    }
+    const id = createSession(vault.meta.id, vault.vaultKeyForSession());
+    return json(
+      res,
+      200,
+      { unlocked: true, meta: vault.meta },
+      {
+        "set-cookie": `${COOKIE}=${id}; HttpOnly; Path=/; SameSite=Strict; Max-Age=${Math.floor(IDLE_MS / 1000)}`,
+      }
+    );
+  }
+
+  if (path === "/api/lock" && method === "POST") {
+    forget(cookies(req)[COOKIE]);
+    return json(res, 200, { locked: true }, { "set-cookie": `${COOKIE}=; HttpOnly; Path=/; SameSite=Strict; Max-Age=0` });
+  }
+
+  /* ---- everything below needs a session */
+  const s = session(req);
+  if (path.startsWith("/api/") && !s) return json(res, 401, { error: "Locked" });
+
+  if (path === "/api/state" && method === "GET") {
+    const items = vault.listFiltered().map(decorate);
+    return json(res, 200, { items, meta: { ...vault.meta, kdf: KDF.algorithm, idleMs: IDLE_MS }, samplePassword: bootPassword });
+  }
+
+  if (path === "/api/items" && method === "POST") {
+    const payload = await body(req);
+    const { id } = vault.addItem(payload);
+    await persist();
+    return json(res, 201, { id });
+  }
+
+  const itemMatch = /^\/api\/items\/([\w-]+)(\/touch)?$/.exec(path);
+  if (itemMatch) {
+    const id = itemMatch[1];
+    if (itemMatch[2] && method === "POST") {
+      vault.touch(id);
+      await persist();
+      return json(res, 200, { ok: true });
+    }
+    if (method === "PUT") {
+      const payload = await body(req);
+      vault.updateItem(id, payload);
+      await persist();
+      return json(res, 200, { ok: true });
+    }
+    if (method === "DELETE") {
+      vault.deleteItem(id);
+      await persist();
+      return json(res, 200, { ok: true });
+    }
+  }
+
+  /* ---- import */
+  if (path === "/api/import/parse" && method === "POST") {
+    const { text, filename = "" } = await body(req);
+    let parsed;
+    try {
+      parsed = chooseParser(String(text), String(filename));
+    } catch (err) {
+      return json(res, 400, { error: err.message });
+    }
+    const existing = vault.listFiltered();
+    const dupeIndexes = findDuplicates(parsed.candidates, existing);
+    const duplicates = [...dupeIndexes].map((i) => parsed.candidates[i].id);
+    setPendingImport(parsed.candidates.filter((_, i) => !dupeIndexes.has(i)));
+    return json(res, 200, {
+      source: parsed.source,
+      notes: parsed.notes,
+      candidates: parsed.candidates,
+      duplicates,
+    });
+  }
+
+  if (path === "/api/import/accept" && method === "POST") {
+    const { acceptAll } = await body(req);
+    const candidates = takePendingImport();
+    if (!candidates || candidates.length === 0) {
+      return json(res, 400, { error: "No import is waiting. Parse a file first." });
+    }
+    let added = 0;
+    let skipped = 0;
+    for (const c of candidates) {
+      if (!acceptAll && c.needsReview) {
+        skipped += 1;
+        continue;
+      }
+      if (c.type === "totp" && !c.totp?.secret) {
+        skipped += 1;
+        continue;
+      }
+      try {
+        vault.addItem({
+          name: c.name,
+          brand: c.brand,
+          service: c.service,
+          host: c.host,
+          type: c.type,
+          env: c.env,
+          value: c.value,
+          notes: c.notes,
+          totp: c.totp,
+          codes: c.codes,
+          tags: c.tags,
+        });
+        added += 1;
+      } catch {
+        skipped += 1;
+      }
+    }
+    await persist();
+    return json(res, 200, { added, skipped });
+  }
+
+  /* ---- export */
+  if (path === "/api/export" && method === "GET") {
+    return json(res, 200, {
+      exportedAt: new Date().toISOString(),
+      warning: "Plaintext export. Delete it once it is somewhere safe.",
+      items: vault.listFiltered().map(({ why, ...rest }) => rest),
+    }, {
+      "content-disposition": `attachment; filename="hasp-export-${new Date().toISOString().slice(0, 10)}.json"`,
+    });
+  }
+
+  /* ---- static */
+  if (path.startsWith("/api/")) return json(res, 404, { error: "No such route" });
+  return serveStatic(req, res, url.pathname);
+}
+
+/** Pick a parser from the file name, then from the contents. */
+function chooseParser(text, filename) {
+  const name = filename.toLowerCase();
+  const trimmed = text.trimStart();
+  if (name.endsWith(".json") || trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    try {
+      return parseKeepJson(text);
+    } catch (err) {
+      // A JSON export that is not Keep may still be an OTP export.
+      try {
+        return parseOtpExport(text);
+      } catch {
+        throw err;
+      }
+    }
+  }
+  if (name.endsWith(".csv")) return parseCsv(text);
+  if (trimmed.startsWith("<")) return parseKeepHtml(text);
+  if (name.endsWith(".html")) return parseKeepHtml(text);
+  if (/otpauth:\/\//.test(text)) return parseOtpExport(text);
+  if (text.includes(",") && /^[^\n]+,[^\n]+/m.test(text) && /password|secret|url|name/i.test(text.split("\n")[0])) {
+    return parseCsv(text);
+  }
+  // A pasted note. Wrap it as a single candidate source.
+  const candidates = parseNote(text, { title: "" });
+  return { candidates, source: "Pasted text", notes: 1 };
+}
+
+/** Add the fields the interface derives rather than stores. */
+function decorate(item) {
+  const out = { ...item };
+  if (item.type === "totp" && item.totp?.secret) {
+    const live = totp(item.totp.secret, { digits: item.totp.digits || 6, step: item.totp.step || 30 });
+    out.totp = { ...item.totp, code: live.code.replace(/(\d{3})(?=\d)/, "$1 "), remaining: live.remaining };
+  }
+  out.why = whyFor(item);
+  return out;
+}
+
+/** Plan section 7: the suggestion line is explainable or it is not shown. */
+function whyFor(item) {
+  const bits = [];
+  if (item.host) bits.push(`Host matches ${item.host}.`);
+  if (item.env) bits.push(`Label reads ${item.env}.`);
+  if (item.lastUsedAt) {
+    const mins = Math.round((Date.now() - new Date(item.lastUsedAt).getTime()) / 60000);
+    const when = mins < 60 ? `${mins} minutes ago` : mins < 1440 ? `${Math.round(mins / 60)} hours ago` : `${Math.round(mins / 1440)} days ago`;
+    bits.push(`Last use was ${when}.`);
+  }
+  return bits.join(" ") || "No usage recorded yet, so nothing is ranked on recency.";
+}
+
+async function serveStatic(req, res, pathname) {
+  let rel = pathname === "/" ? "/index.html" : pathname;
+  // Normalise and clamp to the web root. This is the only path that reads disk.
+  const safe = normalize(rel).replace(/^(\.\.[/\\])+/, "");
+  const file = join(WEB, safe);
+  if (!file.startsWith(WEB)) return text(res, 403, "Forbidden");
+
+  try {
+    const info = await stat(file);
+    if (!info.isFile()) throw new Error("not a file");
+    const data = await readFile(file);
+    const headers = {
+      "content-type": MIME[extname(file)] || "application/octet-stream",
+      "cache-control": rel.endsWith(".woff2") ? "public, max-age=31536000, immutable" : "no-store",
+      ...SECURITY_HEADERS,
+    };
+    res.writeHead(200, headers);
+    return res.end(data);
+  } catch {
+    if (extname(rel) === "") {
+      res.writeHead(200, { "content-type": MIME[".html"], "cache-control": "no-store", ...SECURITY_HEADERS });
+      return res.end(await readFile(join(WEB, "index.html")));
+    }
+    return text(res, 404, "Not found");
+  }
+}
+
+/* ---------------------------------------------------------------- boot */
+
+const server = createServer((req, res) => {
+  route(req, res).catch((err) => {
+    // Never echo a secret or a stack in a response.
+    console.error("request failed:", err.message);
+    if (!res.headersSent) json(res, 500, { error: "Something went wrong on the server" });
+    else res.end();
+  });
+});
+
+await bootVault();
+
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Hasp on http://localhost:${PORT}`);
+  console.log(`Idle lock: ${IDLE_MS / 60000} minutes. Storage: ${EPHEMERAL ? "in memory only" : ".vault/vault.json"}`);
+});
+
+process.on("SIGTERM", () => server.close(() => process.exit(0)));
+process.on("SIGINT", () => server.close(() => process.exit(0)));

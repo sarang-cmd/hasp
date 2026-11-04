@@ -1,0 +1,212 @@
+/* Hasp design tokens.
+ *
+ * Two directions, each with a light and a dark mode.
+ *
+ *   Foundry     parts catalog. Square corners, 1px rules, solid ink table
+ *               header, one oxide accent. Structure carries the hierarchy.
+ *   Nightshift  neumorphism. Controls sit in the surface instead of on top of
+ *               it: paired outer light and dark shadows, pressed fields, no
+ *               visible borders. The palette carries the hierarchy, so the
+ *               contrast floor is checked in test/theme.test.mjs.
+ *
+ * Direction and mode are independent. <html data-dir="foundry" data-mode="dark">
+ * The four combinations are the whole surface area; nothing else sets colour.
+ */
+
+/* ------------------------------------------------------------ modes first */
+/* Every direction reads these, so a mode change never needs a component rule. */
+
+:root[data-mode="light"] {
+  color-scheme: light;
+}
+
+:root[data-mode="dark"] {
+  color-scheme: dark;
+}
+
+/* ---------------------------------------------------------------- Foundry */
+
+:root[data-dir="foundry"][data-mode="light"],
+[data-dir="foundry"][data-mode="light"] {
+  --bg: #e8e6e0;
+  --panel: #f1efe9;
+  --panel-2: #edebe4;
+  --rail: #edebe4;
+  --ink: #17170f;
+  --ink-2: #3c3b31;
+  --mut: #6c6a5b;
+  --line: #c0bdb1;
+  --line-2: #d7d4c8;
+  --accent: #b23a12;
+  --accent-ink: #ffffff;
+  --accent-soft: rgba(178, 58, 18, 0.07);
+  --ok: #3f6b3a;
+  --ok-soft: rgba(63, 107, 58, 0.12);
+  --warn: #8a6212;
+  --warn-soft: rgba(138, 98, 18, 0.12);
+  --bad: #9a2418;
+  --header: #17170f;
+  --header-ink: #e8e6e0;
+  --focus: #b23a12;
+  --lift: none;
+  --press: none;
+  --plate: #f4f2ec;
+  --scrim: rgba(23, 23, 15, 0.42);
+}
+
+:root[data-dir="foundry"][data-mode="dark"],
+[data-dir="foundry"][data-mode="dark"] {
+  --bg: #14140f;
+  --panel: #1a1a14;
+  --panel-2: #17170f;
+  --rail: #17170f;
+  --ink: #eae7dc;
+  --ink-2: #c5c1b2;
+  --mut: #8f8b7b;
+  --line: #34342a;
+  --line-2: #262620;
+  --accent: #e0683a;
+  --accent-ink: #17170f;
+  --accent-soft: rgba(224, 104, 58, 0.12);
+  --ok: #86ad7f;
+  --ok-soft: rgba(134, 173, 127, 0.14);
+  --warn: #d6a844;
+  --warn-soft: rgba(214, 168, 68, 0.14);
+  --bad: #e08577;
+  --header: #0e0e0a;
+  --header-ink: #c5c1b2;
+  --focus: #e0683a;
+  --lift: none;
+  --press: none;
+  --plate: #f4f2ec;
+  --scrim: rgba(0, 0, 0, 0.6);
+}
+
+/* Foundry geometry is identical in both modes. */
+:root[data-dir="foundry"] {
+  --ui: "Archivo", system-ui, sans-serif;
+  --display: "Archivo", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --fs: 13px;
+  --r: 0px;
+  --r-sm: 0px;
+  --r-pill: 0px;
+  --railw: 240px;
+  --inspw: 376px;
+  --rowh: 48px;
+  --pad: 22px;
+  --border: 1px solid var(--line);
+  --rule: 1px solid var(--ink);
+  --row-active: inset 3px 0 0 var(--accent);
+  --shadow-pop: 0 18px 44px rgba(23, 23, 15, 0.18);
+}
+
+:root[data-dir="foundry"][data-mode="dark"],
+[data-dir="foundry"][data-mode="dark"] {
+  --shadow-pop: 0 18px 44px rgba(0, 0, 0, 0.6);
+}
+
+/* ------------------------------------------------------------- Nightshift */
+/* Neumorphic. The surface and the controls share one colour; depth comes from
+ * two shadows, one light from the top left and one dark to the bottom right.
+ * A pressed control swaps them inwards. */
+
+:root[data-dir="nightshift"][data-mode="dark"],
+[data-dir="nightshift"][data-mode="dark"] {
+  --bg: #14161a;
+  --panel: #171a1f;
+  --panel-2: #15181c;
+  --rail: #15181c;
+  --well: #121419;
+  --ink: #e8eaed;
+  --ink-2: #b9bec6;
+  --mut: #8b919e;
+  --line: #23272e;
+  --line-2: #1e2228;
+  --accent: #7fa6d8;
+  --accent-ink: #0e1116;
+  --accent-soft: rgba(127, 166, 216, 0.12);
+  --ok: #6fa98b;
+  --ok-soft: rgba(111, 169, 139, 0.14);
+  --warn: #d9a227;
+  --warn-soft: rgba(217, 162, 39, 0.14);
+  --bad: #d98b7f;
+  --header: #171a1f;
+  --header-ink: #e8eaed;
+  --focus: #7fa6d8;
+  --plate: #f2f4f7;
+  --scrim: rgba(6, 8, 10, 0.58);
+
+  /* Light from the top left, shadow to the bottom right. */
+  --hl: rgba(255, 255, 255, 0.055);
+  --sh: rgba(0, 0, 0, 0.62);
+  --lift-x: 5px;
+  --lift-y: 5px;
+  --lift-blur: 12px;
+  --lift: var(--lift-x) var(--lift-y) var(--lift-blur) var(--sh), calc(-1 * var(--lift-x)) calc(-1 * var(--lift-y)) calc(var(--lift-blur) - 3px) var(--hl);
+  --press: inset 3px 3px 7px var(--sh), inset -2px -2px 5px var(--hl);
+  --flat: inset 0 1px 0 var(--hl);
+  --edge: 1px solid #1f242a;
+  --shadow-pop: 0 24px 60px rgba(0, 0, 0, 0.66), 0 1px 0 var(--hl) inset;
+}
+
+:root[data-dir="nightshift"][data-mode="light"],
+[data-dir="nightshift"][data-mode="light"] {
+  --bg: #e4e8ee;
+  --panel: #e9edf3;
+  --panel-2: #e2e7ee;
+  --rail: #e6eaf1;
+  --well: #dde2ea;
+  --ink: #232833;
+  --ink-2: #3f4654;
+  --mut: #5d6675;
+  --line: #d3dae3;
+  --line-2: #dbe1e9;
+  --accent: #4c6b96;
+  --accent-ink: #f8fafc;
+  --accent-soft: rgba(92, 123, 168, 0.12);
+  --ok: #4a8566;
+  --ok-soft: rgba(74, 133, 102, 0.13);
+  --warn: #8a6212;
+  --warn-soft: rgba(138, 98, 18, 0.12);
+  --bad: #a8453a;
+  --header: #e9edf3;
+  --header-ink: #232833;
+  --focus: #5c7ba8;
+  --plate: #ffffff;
+  --scrim: rgba(35, 40, 51, 0.34);
+
+  --hl: rgba(255, 255, 255, 0.95);
+  --sh: rgba(163, 177, 198, 0.55);
+  --lift-x: 5px;
+  --lift-y: 5px;
+  --lift-blur: 12px;
+  --lift: var(--lift-x) var(--lift-y) var(--lift-blur) var(--sh), calc(-1 * var(--lift-x)) calc(-1 * var(--lift-y)) calc(var(--lift-blur) - 3px) var(--hl);
+  --press: inset 3px 3px 7px var(--sh), inset -2px -2px 5px var(--hl);
+  --flat: inset 0 1px 0 var(--hl);
+  --edge: 1px solid var(--line);
+  --shadow-pop: 0 22px 50px rgba(163, 177, 198, 0.55), 0 1px 0 var(--hl) inset;
+}
+
+:root[data-dir="nightshift"] {
+  --ui: "Instrument Sans", system-ui, sans-serif;
+  --display: "Instrument Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --fs: 13px;
+  --r: 12px;
+  --r-sm: 9px;
+  --r-pill: 999px;
+  --railw: 232px;
+  --inspw: 372px;
+  --rowh: 48px;
+  --pad: 22px;
+  --border: 1px solid transparent;
+  --rule: 1px solid var(--line-2);
+  --row-active: var(--press);
+}
+
+/* In Nightshift the surface itself is the only ground; panels are the same
+ * colour and are separated by shadow, not by a fill change. */
+:root[data-dir="nightshift"] body {
+  background: var(--bg);
+}

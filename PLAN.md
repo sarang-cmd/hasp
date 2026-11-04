@@ -1,6 +1,15 @@
 # Hasp, implementation plan
 
-Working name: Hasp. Status: design exploration done, 12 directions and 72 mockup images, no product code written.
+Working name: Hasp. Status: design exploration done, 12 directions and 72 mockup images.
+
+**Built since this plan was written.** Foundry and Nightshift were chosen from the twelve
+directions, and a working web vault now exists for them, each in light and dark. See `README.md` for
+what runs, and `src/core/` for the crypto that the tests pin down. The sections below are kept as
+written so the proposal and the build can be compared; where the build departs from the proposal it
+says so in the code, not by quietly editing this file.
+
+The decisions in section 1 are no longer all open. Name: Hasp. Direction: Foundry, with Nightshift
+available, both with light and dark. Surfaces: web first. The rest still need your answer.
 
 The repository held one README before this work. There was no site to audit, so the audit list from the brief becomes the build standard in sections 8 and 9.
 
@@ -13,13 +22,14 @@ Trend references come from the DesignerUp list of popular UI styles. Each dark d
 
 ---
 
-## 1. Decisions to make first
+## 1. Decisions
+
+Settled: name Hasp, directions Foundry and Nightshift with an independent light and dark for each,
+web dashboard first. Still open, with the default that applies if you say nothing:
 
 | Decision | Options | Default if you say nothing |
 | --- | --- | --- |
-| Name | Hasp, Keystone, Fob, Latch, Custodian, Keyline | Hasp |
-| Direction | 01 to 12, six light and six dark | 02 Reading Room for daylight, 11 Glasshouse for a dark default |
-| First release | Web and extension only, or all four surfaces | Web and extension first |
+| Next surface | Browser extension, or desktop, or mobile | Browser extension, per phase 2 |
 | Search model | Client-side index, or encrypted server index | Client-side index |
 | AI labels | On-device model, hosted model with redaction, or no model in v1 | Hosted model with explicit consent and redaction |
 | Pricing | Not set. No prices appear in the mockups | Free while in beta |
