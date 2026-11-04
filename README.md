@@ -44,7 +44,7 @@ below the floor. The palette cannot drift quietly.
 ```
 npm install
 npm start            # http://localhost:3000
-npm test             # 429 cases
+npm test             # 463 cases
 ```
 
 Node 22 or newer. No database, no environment variables, no network at runtime.
@@ -83,9 +83,14 @@ hashes, so the vault never holds the plaintext of what you searched for.
 
 Stated plainly, because the header above says "sealed" and that word has a floor.
 
-- **No sync, no accounts, no sharing.** One vault, one machine, one password. The
-  browser extension, the desktop shell and the phone app all talk to that one
-  vault over the network and none of them hold a copy of it.
+- **No accounts, no sharing, no account recovery.** A password you lose is a vault
+  you lose. There is no party that can reset it, which is the point and also the
+  cost.
+- **Sync is a file, not a service.** `src/sync/` moves ciphertext between your own
+  machines. It is off until you start it, and it keeps the vault id, record ids,
+  revisions, timestamps, item types and the blind index. It cannot read a name or a
+  value, because it has no key. A store token is a write credential: whoever holds
+  it can write junk into your vault, though not read it.
 - **The phone app is a client, not a vault.** It shows one-time codes, pairs over
   plain HTTP on a local network, and needs the desktop machine awake. See
   `mobile/README.md`.
@@ -107,7 +112,7 @@ server.mjs            one node:http server, static files + JSON API, no dependen
 src/core/             kdf, crypto, wrap, vault, totp, backup codes, parsers, seed
 src/web/              the client: tokens, components, app, themes page, brands, fonts
 src/web/heroicons/    vendored Heroicons solid, MIT, licence beside them
-test/                 429 cases: crypto, TOTP, parsers, contrast, API, and the real client in jsdom
+test/                 463 cases: crypto, TOTP, parsers, contrast, API, and the real client in jsdom
 tools/                icon and brand generation, the renderer, the Playwright capture
 docs/BRAND.md         the identity: mark, wordmark, colour, clear space
 ```

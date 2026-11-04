@@ -57,6 +57,9 @@
       <div><dt>Copy</dt><dd>The clipboard clears after 30 seconds, and the timer is cancelled when the vault locks.</dd></div>
       <div><dt>Rotate</dt><dd>Replacing a value keeps the previous version, so a rotation is reversible.</dd></div>
       <div><dt>Search</dt><dd>Queries match a blind index built from keyed hashes, so the vault never stores the words you searched for.</dd></div>
+      <div><dt>Sync</dt><dd>Off by default. Two of your own devices exchange records that are already
+        ciphertext. The store sees the vault id, the record id, a revision, timestamps, the
+        item type and the blind index. It cannot read a name or a value, because it holds no key.</dd></div>
     </dl>
   </div>
 </section>
