@@ -280,6 +280,45 @@ describe("import", () => {
     assert.equal(res.json.candidates[0].totp.secret, "GEZDGNBVGY3TQOJQ");
   });
 
+  test("a 2FAS export becomes one-time code candidates with brands", async () => {
+    const json = JSON.stringify({
+      services: [
+        { name: "GitHub", secret: "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP", otp: { issuer: "GitHub", account: "you@example.com" } },
+        { name: "Cloudflare", secret: "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ", otp: { issuer: "Cloudflare" } },
+      ],
+    });
+    const res = await call("/api/import/parse", { method: "POST", body: { text: json, filename: "2fas.json" } });
+    assert.equal(res.status, 200);
+    assert.match(res.json.source, /2FAS/);
+    assert.equal(res.json.candidates.length, 2);
+    const gh = res.json.candidates.find((c) => c.brand === "github");
+    assert.ok(gh, "the GitHub code lost its brand");
+    assert.equal(gh.totp.secret, "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP");
+    assert.ok(gh.id, "the candidate has no id, so review cannot track it");
+  });
+
+  test("a truncated authenticator export falls back instead of claiming it", async () => {
+    const res = await call("/api/import/parse", {
+      method: "POST",
+      body: { text: '{"services": [{"name": "GitHub"', filename: "2fas.json" },
+    });
+    assert.notEqual(res.json.source, "2FAS");
+  });
+
+  test("an accepted authenticator import stores a code that produces a live token", async () => {
+    const json = JSON.stringify({
+      services: [{ name: "Acme", secret: "JBSWY3DPEHPK3PXPJBSWY3DPEHPK3PXP", otp: { issuer: "Acme" } }],
+    });
+    const parsed = await call("/api/import/parse", { method: "POST", body: { text: json, filename: "2fas.json" } });
+    assert.equal(parsed.json.candidates.length, 1);
+    const accepted = await call("/api/import/accept", { method: "POST", body: { acceptAll: true } });
+    assert.equal(accepted.json.added, 1);
+    const items = (await call("/api/state")).json.items;
+    const acme = items.find((i) => i.name === "Acme" && i.type === "totp");
+    assert.ok(acme, "the imported code is not in the vault");
+    assert.match(acme.totp.code, /\d/, "the stored code does not produce a token");
+  });
+
   test("a csv is recognised from its contents when the name gives nothing away", async () => {
     const csv = "name,url,username,password\nAcme,https://acme.test,dev,sup3r-invented-value";
     const res = await call("/api/import/parse", { method: "POST", body: { text: csv, filename: "export.txt" } });
