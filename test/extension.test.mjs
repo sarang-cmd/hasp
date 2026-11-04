@@ -93,6 +93,57 @@ before(async () => {
   client = await import("../extension/lib/client.js");
 });
 
+describe("search", () => {
+  test("a query goes to the vault instead of narrowing the list here", async () => {
+    // The popup used to filter its own list by name, service, host and env. A match in
+    // a note was invisible, because notes never reach the popup. This pins the call
+    // that replaced it.
+    const seen = [];
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      seen.push(String(url));
+      return {
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        json: async () => ({ items: [] }),
+        text: async () => "{}",
+      };
+    };
+    try {
+      await client.state("stripe webhooks");
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+    assert.equal(seen.length, 1);
+    assert.match(seen[0], /\/api\/state\?q=stripe%20webhooks$/, "the query is escaped and sent");
+  });
+
+  test("no query asks for the whole list and does not send an empty q", async () => {
+    const seen = [];
+    const realFetch = globalThis.fetch;
+    globalThis.fetch = async (url) => {
+      seen.push(String(url));
+      return {
+        ok: true,
+        status: 200,
+        headers: { get: () => null },
+        json: async () => ({ items: [] }),
+        text: async () => "{}",
+      };
+    };
+    try {
+      await client.state();
+      await client.state("");
+    } finally {
+      globalThis.fetch = realFetch;
+    }
+    for (const url of seen) {
+      assert.equal(url.includes("?q="), false, `${url} carried an empty query`);
+    }
+  });
+});
+
 describe("vault address", () => {
   test("accepts http loopback", () => {
     assert.equal(client.normaliseOrigin("http://127.0.0.1:3000"), "http://127.0.0.1:3000");

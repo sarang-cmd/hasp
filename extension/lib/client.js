@@ -89,8 +89,9 @@ export async function request(path, { method = "GET", body } = {}) {
 /** The session, so the popup knows whether to show the gate or the list. */
 export const session = () => request("/api/session");
 
-/** The whole item list. */
-export const state = () => request("/api/state");
+/** The whole item list, or the matches for a query when one is given. */
+export const state = (query) =>
+  request(query ? `/api/state?q=${encodeURIComponent(query)}` : "/api/state");
 
 /** Unlock. The password crosses loopback once and is not stored. */
 export const unlock = (password) => request("/api/unlock", { method: "POST", body: { password } });

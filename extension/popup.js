@@ -98,13 +98,13 @@ function renderVault() {
   const { items, query, host } = current;
   setStateLabel("Open");
 
-  const q = query.trim().toLowerCase();
-  const visible = q
-    ? items.filter((i) =>
-        [i.name, i.service, i.host, i.env].some((f) => String(f || "").toLowerCase().includes(q)),
-      )
-    : items;
+  // The query is answered by the vault, not by narrowing this list. Searching here
+  // meant a match in a note was invisible, because notes never reach the popup.
+  const q = query.trim();
+  const visible = items;
 
+  // Host matching is still local, because it is a lookup on the tab's hostname and
+  // has nothing to do with what was typed.
   const relevant = q ? [] : matchHost(items, host);
   const relevantIds = new Set(relevant.map((i) => i.id));
   const rest = visible.filter((i) => !relevantIds.has(i.id));
@@ -122,12 +122,44 @@ function renderVault() {
   const search = view.querySelector("#search");
   search?.addEventListener("input", () => {
     current.query = search.value;
-    renderVault();
-    // Re-focus and restore the caret: renderVault rebuilds the field.
+    searchNow(search.value);
+    // renderVault rebuilds the whole view, field included, so focus and caret are put
+    // back here rather than assumed to survive.
     const next = view.querySelector("#search");
     next.focus();
     next.setSelectionRange(next.value.length, next.value.length);
   });
+}
+
+/* ----------------------------------------------------------------- search */
+
+let searchTimer = null;
+let searchSeq = 0;
+
+/**
+ * Ask the vault for the matches.
+ *
+ * Debounced, and sequence guarded, so a slow reply for an earlier keystroke cannot
+ * land on top of a later one. An empty query is not debounced: clearing the field
+ * should bring the list back at once.
+ */
+async function searchNow(query) {
+  clearTimeout(searchTimer);
+  const seq = ++searchSeq;
+  const run = async () => {
+    try {
+      const { items = [] } = await state(query);
+      if (seq !== searchSeq) return;
+      current = { ...current, items, query };
+      renderVault();
+    } catch (err) {
+      if (seq !== searchSeq) return;
+      if (err.code === "locked") return renderGate();
+      renderOffline(err);
+    }
+  };
+  if (!query.trim()) return run();
+  searchTimer = setTimeout(run, 120);
 }
 
 /* ------------------------------------------------------------------ boot */
