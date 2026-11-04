@@ -46,6 +46,27 @@ export function readSession(id) {
   return s;
 }
 
+/**
+ * Is the vault unlocked for anybody?
+ *
+ * A phone has no session cookie, and never will. It proves possession of a pairing
+ * secret instead. So the question the phone's route asks is not "is this request
+ * signed in" but "is somebody signed in", which is what this answers.
+ *
+ * Expired sessions are pruned on the way, so a stale entry cannot keep reporting
+ * the vault as open.
+ */
+export function anyLiveSession(now = Date.now()) {
+  for (const [id, s] of sessions) {
+    if (now - s.seenAt > IDLE_MS || now - s.createdAt > ABSOLUTE_MS) {
+      forget(id);
+      continue;
+    }
+    return true;
+  }
+  return false;
+}
+
 /** Drop one session and its key material. */
 export function forget(id) {
   const s = sessions.get(id);
