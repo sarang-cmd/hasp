@@ -365,7 +365,7 @@ describe("sync client", () => {
       type: "api-key",
       service: "Avocado",
       host: "avocado.example",
-      value: "sk_live_TOPSECRETVALUE",
+      value: "EXAMPLE-stripe-value-not-real",
       notes: "the passphrase is horsebattery",
     });
     client.push();
