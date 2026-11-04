@@ -182,7 +182,28 @@ export class SyncStore {
     const blob = toBlob(record);
     const records = this.#vaults.get(vaultId);
     const current = records.get(blob.id);
-    if (current && blob.rev <= current.rev) {
+    // An equal revision is one of two things, and the bytes say which.
+    //
+    // Identical ciphertext is the same record arriving twice, which happens when a
+    // device repeats itself. Reporting that as a conflict would ask a user to
+    // resolve a difference that does not exist.
+    //
+    // Different ciphertext at the same revision is the real clash: two devices each
+    // changed the record once from the same base, so both reached revision 2. The
+    // store cannot merge them, because it can read neither. It refuses and reports
+    // the current revision, and the caller keeps its own copy.
+    if (current && blob.rev === current.rev) {
+      const sameBytes =
+        current.ciphertext === blob.ciphertext &&
+        current.nonce === blob.nonce &&
+        current.wrappedKey === blob.wrappedKey;
+      if (sameBytes) return { stored: blob.id, rev: blob.rev, seq: blob.seq, unchanged: true };
+      throw Object.assign(new Error("the same revision, different contents"), {
+        status: 409,
+        current: current.rev,
+      });
+    }
+    if (current && blob.rev < current.rev) {
       throw Object.assign(new Error("an older revision"), { status: 409, current: current.rev });
     }
     records.set(blob.id, blob);

@@ -102,6 +102,11 @@ export class SyncClient {
       // It came from the store, so the store has it. Without this, every pull is
       // echoed by the next push and lands as a 409 at an equal revision, which
       // reads as a conflict between a device and itself.
+      // What the store holds, not what was pushed. A record pulled at revision 2
+      // means the store is at 2, so this device knows that anything it produces at 2
+      // is the same revision the store already has. That is how a genuine clash, two
+      // devices both producing revision 2 from revision 1, is told apart from a
+      // repeat of something already sent.
       if (!(this.#sent.get(record.id) >= record.rev)) this.#sent.set(record.id, record.rev);
       if (record.seq > this.#seq) this.#seq = record.seq;
     }

@@ -274,6 +274,24 @@ export class Vault {
     }
     const local = this.#items.get(record.id);
     if (local && (local.rev || 1) >= (record.rev || 1)) return "ignored";
+    // A vault cannot pull its own records and gain anything, but the store hands
+    // them back to the device that wrote them, so the common case is the identical
+    // record. Calling that "applied" would report every round as work when nothing
+    // moved.
+    //
+    // Every field that carries meaning is compared, not just the ciphertext. A
+    // delete leaves the ciphertext alone and changes only deletedAt, so a check on
+    // the bytes would have reported a delete as no change and never applied it.
+    if (
+      local &&
+      local.ciphertext === record.ciphertext &&
+      local.nonce === record.nonce &&
+      local.wrappedKey === record.wrappedKey &&
+      (local.deletedAt ?? null) === (record.deletedAt ?? null) &&
+      local.version === record.version
+    ) {
+      return "unchanged";
+    }
     if (Number.isInteger(record.seq) && record.seq > this.#seq) {
       this.#seq = record.seq;
       this.#meta.seq = record.seq;

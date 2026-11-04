@@ -82,17 +82,56 @@ describe("sync store", () => {
     assert.throws(() => store.push(vaultId, token, { ...record, seq: undefined }), /sequence/);
   });
 
-  test("an older revision is refused and the caller is told the current one", async () => {
+  test("the same revision twice is unchanged, not a conflict", async () => {
+    // A device that repeats itself must not be told to resolve a difference that
+    // does not exist. Before this rule every repeat read as a conflict.
     const { store, vault, vaultId, token } = await pair();
     const { id } = vault.addItem({ name: "Thing", type: "api-key", value: "one" });
     const blob = toBlob(vault.rawRecord(id));
     store.push(vaultId, token, blob);
+    const again = store.push(vaultId, token, blob);
+    assert.equal(again.unchanged, true);
+    assert.equal(store.count(vaultId), 1, "and it did not duplicate the record");
+  });
+
+  test("the same revision with different bytes is a conflict, not a repeat", async () => {
+    // Two devices each change a record once from the same base, so both reach
+    // revision 2 with different ciphertext. The store can read neither side, so it
+    // refuses rather than picks.
+    const { store, vault, vaultId, token } = await pair();
+    const { id } = vault.addItem({ name: "Shared", type: "api-key", value: "base" });
+    store.push(vaultId, token, toBlob(vault.rawRecord(id)));
+    // Opened after the item exists, so both sides start from the same revision.
+    const first = await Vault.unlock(vault.serialize(), SAMPLE_PASSWORD);
+
+    vault.updateItem(id, { value: "one way" });
+    first.updateItem(id, { value: "another way" });
+    assert.equal(vault.rawRecord(id).rev, 2);
+    assert.equal(first.rawRecord(id).rev, 2);
+
+    store.push(vaultId, token, toBlob(vault.rawRecord(id)));
+    assert.throws(
+      () => store.push(vaultId, token, toBlob(first.rawRecord(id))),
+      (err) => err.status === 409 && err.current === 2
+    );
+    assert.equal(store.pull(vaultId, token, 0).records[0].ciphertext, toBlob(vault.rawRecord(id)).ciphertext);
+  });
+
+  test("a revision the store has moved past is a conflict, and the caller is told the current one", async () => {
+    const { store, vault, vaultId, token } = await pair();
+    const { id } = vault.addItem({ name: "Thing", type: "api-key", value: "one" });
+    const stale = toBlob(vault.rawRecord(id));
+    store.push(vaultId, token, stale);
+    vault.updateItem(id, { value: "two" });
+    const fresh = toBlob(vault.rawRecord(id));
+    store.push(vaultId, token, fresh);
     try {
-      store.push(vaultId, token, blob);
-      assert.fail("the same revision went in twice");
+      store.push(vaultId, token, stale);
+      assert.fail("an older revision replaced a newer one");
     } catch (err) {
       assert.equal(err.status, 409);
-      assert.equal(err.current, blob.rev);
+      assert.equal(err.current, fresh.rev);
+      assert.equal(store.pull(vaultId, token, 0).records[0].rev, fresh.rev, "the newer copy survived");
     }
   });
 
@@ -182,7 +221,31 @@ describe("sync client", () => {
     assert.equal(device.listFiltered().some((i) => i.name === "Doomed"), false);
   });
 
-  test("two edits to one item are reported, not merged, and the newer revision wins", async () => {
+  test("applyRemote tells a delete apart from a repeat of what it already has", async () => {
+    // A delete changes only deletedAt. The ciphertext stays the same, so a shortcut
+    // that compared bytes would call the delete "unchanged" and never apply it, and
+    // the row would stay on the other device forever.
+    const { vault, store, client, token } = await pair();
+    const { id } = vault.addItem({ name: "Doomed", type: "api-key", value: "x" });
+    client.push();
+    const live = toBlob(vault.rawRecord(id));
+
+    const target = await Vault.unlock(vault.serialize(), SAMPLE_PASSWORD);
+    // The target already holds the record at that revision, so it is refused before
+    // the byte comparison is even reached. Either answer means nothing moved.
+    assert.ok(["unchanged", "ignored"].includes(target.applyRemote(live)), "the same record again changes nothing");
+
+    vault.deleteItem(id);
+    const dead = toBlob(vault.rawRecord(id));
+    assert.equal(dead.ciphertext, live.ciphertext, "a delete leaves the ciphertext alone");
+    assert.notEqual(dead.deletedAt, null);
+    assert.equal(target.applyRemote(dead), "applied", "and the delete still lands");
+    assert.equal(target.listFiltered().some((i) => i.name === "Doomed"), false);
+    void store;
+    void token;
+  });
+
+  test("two edits to one item are reported, not merged, and the first write wins", async () => {
     const { vault, store, client, token } = await pair();
     const { id } = vault.addItem({ name: "Shared", type: "api-key", value: "base" });
     client.push();
@@ -197,6 +260,8 @@ describe("sync client", () => {
 
     const first = client.push();
     assert.equal(first.pushed, 1, "the first write lands");
+    // The second device has already been told revision 1 left, so it knows to try
+    // revision 2. The store is at 2 and refuses it.
     const late = second.push();
     assert.equal(late.pushed, 0, "the late write does not overwrite");
     assert.equal(late.conflicts.length, 1);
