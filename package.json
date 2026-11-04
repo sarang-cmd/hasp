@@ -8,7 +8,7 @@
     "node": ">=22.6.0"
   },
   "scripts": {
-    "dev": "node --watch-path=src --watch-path=server.mjs server.mjs --port=3000",
+    "dev": "node tools/dev.mjs",
     "start": "node server.mjs",
     "test": "node --experimental-strip-types --test --test-force-exit test/*.test.mjs",
     "brands": "node tools/brands.mjs",
