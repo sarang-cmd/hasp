@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · Hasp</title>
+<meta name="description" content="What data Hasp processes, where it is stored, and what leaves the machine. The short version: nothing leaves it.">
+<link rel="canonical" href="https://hasp.dev/privacy">
+<meta name="theme-color" content="#f6f5f1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Privacy · Hasp">
+<meta property="og:description" content="What data Hasp processes, where it is stored, and what leaves the machine. The short version: nothing leaves it.">
+<meta property="og:image" content="https://raw.githubusercontent.com/sarang-cmd/hasp/main/docs/screens/social.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:url" content="https://hasp.dev/privacy">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/site-pages/site.css">
+<link rel="preload" href="/fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Hasp","applicationCategory":"SecurityApplication","operatingSystem":"Linux, macOS, Windows","description":"A local-first vault for API keys, backup codes and one-time codes. Runs on your machine with no account and no network access at runtime.","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"isAccessibleForFree":true,"license":"https://opensource.org/licenses/MIT"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Hasp","url":"https://hasp.dev","email":"hello@hasp.dev","description":"A small local-first tool for keeping API keys and one-time codes in order."}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/"><svg viewBox="0 0 128 128" width="22" height="22" aria-hidden="true" focusable="false">
+  <path d="M44 78V56a20 20 0 0 1 40 0v22" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"/>
+  <rect x="18" y="72" width="92" height="34" rx="10" fill="currentColor"/>
+  <circle cx="40" cy="89" r="6" fill="var(--paper)"/><circle cx="88" cy="89" r="6" fill="var(--paper)"/>
+</svg><span>hasp</span></a>
+    <nav class="site-nav" aria-label="Main"><a href="/product">Product</a><a href="/security">Security</a><a href="/pricing">Pricing</a><a href="/about">About</a><a href="/docs">Docs</a></nav>
+  </div>
+</header>
+<main id="main">
+
+<div class="doc"><div class="wrap measure">
+  <h1>Privacy</h1>
+  <p class="updated">Last updated 4 November 2026</p>
+
+  <p style="margin-top:24px"><span class="draft">Draft</span>This policy describes the software in this repository. It has not been reviewed by a lawyer, and no company entity operates a hosted service behind it.</p>
+
+  <h2>What Hasp processes</h2>
+  <p>Hasp stores the items you add: names, services, hosts, environments, notes, secret values, one-time code secrets and backup code sets. It also stores the parameters used to derive your key, and the wrapped vault key.</p>
+  <p>It does not collect analytics, telemetry, usage events, device identifiers or crash reports. There is no account and no email address.</p>
+
+  <h2>Where the data goes</h2>
+  <p>Nowhere. The vault is a single encrypted file at <code>.vault/vault.json</code> in the directory you ran it from, unless you set <code>HASP_EPHEMERAL=1</code>, in which case nothing is written to disk at all.</p>
+  <p>The interface is served by the same process that holds the key. That process makes no outbound request at runtime. Company marks, fonts and icons are served from the project folder rather than a CDN.</p>
+
+  <h2>What the server can see</h2>
+  <p><span class="draft">Draft</span>This is the important limitation, and it is a property of the current architecture rather than a policy choice. The server derives your key and seals items, which means plaintext passes through the Node process and over the loopback interface. Anyone who can read that process's memory can read the vault key. A future version is intended to move this work into the browser, which would change this paragraph.</p>
+
+  <h2>Third parties</h2>
+  <p>None are contacted by the software. <span class="draft">Draft</span>If a hosted version is ever operated, this section will need the hosting provider, the region, the sub-processors and the lawful basis for each. None of those decisions exists yet.</p>
+
+  <h2>Your rights</h2>
+  <p><span class="draft">Draft</span>A hosted service would owe you access, correction, deletion and portability. Because there is no service and no account, the practical answer is that the file is yours: delete it and the data is gone. Export is available from the Settings screen.</p>
+
+  <h2>Retention</h2>
+  <p><span class="draft">Draft</span>No retention period is defined because there is no service retaining anything. The file persists until you delete it.</p>
+
+  <h2>Contact</h2>
+  <p><a href="mailto:hello@hasp.dev">hello@hasp.dev</a></p>
+</div></div>
+
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="col"><strong>Product</strong><a href="/product">Overview</a><a href="/security">Security</a><a href="/pricing">Pricing</a><a href="/docs">Documentation</a></div><div class="col"><strong>Company</strong><a href="/about">About</a><a href="/contact">Contact</a></div><div class="col"><strong>Legal</strong><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/cookies">Cookies</a></div>
+    <div class="col spacer"><strong>Contact</strong><a href="mailto:hello@hasp.dev">hello@hasp.dev</a></div>
+  </div>
+</footer>
+</body>
+</html>

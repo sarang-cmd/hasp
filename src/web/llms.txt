@@ -1,0 +1,24 @@
+# Hasp
+
+> A local-first vault for API keys, backup codes and one-time codes. It runs on your
+> own machine as a single Node process, needs no account, and makes no network
+> request at runtime. The vault is one encrypted file. Tested, not audited.
+
+The cipher is ChaCha20-Poly1305 with a 12 byte random nonce.
+Cryptography runs in the Node server, so plaintext crosses the loopback interface.
+It has not received an independent security review.
+
+## Pages
+
+- [Home](https://hasp.dev/): what the product is and what it deliberately is not.
+- [Product](https://hasp.dev/product): the vault, the two design directions, and import.
+- [Security](https://hasp.dev/security): guarantees, gaps and the threat model.
+- [Pricing](https://hasp.dev/pricing): free during development, no paid tier exists.
+- [Docs](https://hasp.dev/docs): run it, import exports, keyboard shortcuts.
+- [Privacy](https://hasp.dev/privacy): no analytics, nothing leaves the machine.
+- [Terms](https://hasp.dev/terms): provided as-is, not audited.
+
+## Optional
+
+- [About](https://hasp.dev/about): why it exists and what it is built from.
+- [Contact](https://hasp.dev/contact): one address, read by the person who builds it.

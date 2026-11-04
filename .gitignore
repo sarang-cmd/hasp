@@ -10,3 +10,8 @@ data/*.json
 
 # Screenshot scratch
 tmp/
+
+# Environment files. A secret key belongs here, never in a commit.
+.env
+.env.*
+!.env.example
