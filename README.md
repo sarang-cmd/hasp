@@ -44,7 +44,7 @@ below the floor. The palette cannot drift quietly.
 ```
 npm install
 npm start            # http://localhost:3000
-npm test             # 217 cases
+npm test             # 429 cases
 ```
 
 Node 22 or newer. No database, no environment variables, no network at runtime.
@@ -83,8 +83,12 @@ hashes, so the vault never holds the plaintext of what you searched for.
 
 Stated plainly, because the header above says "sealed" and that word has a floor.
 
-- **No browser extension, desktop app or mobile app.** A web page only.
-- **No sync, no accounts, no sharing.** One vault, one machine, one password.
+- **No sync, no accounts, no sharing.** One vault, one machine, one password. The
+  browser extension, the desktop shell and the phone app all talk to that one
+  vault over the network and none of them hold a copy of it.
+- **The phone app is a client, not a vault.** It shows one-time codes, pairs over
+  plain HTTP on a local network, and needs the desktop machine awake. See
+  `mobile/README.md`.
 - **The cipher is `chacha20-poly1305` with a 12-byte nonce, not the planned
   XChaCha20-Poly1305.** `src/core/crypto.js` says so at the top. Replace it with
   libsodium before a real secret goes in.
@@ -92,7 +96,9 @@ Stated plainly, because the header above says "sealed" and that word has a floor
 - **Passkey unlock is a stub.** It renders and stores nothing.
 - **The screenshots are generated, not captured.** `tools/render.mjs` draws them
   from the real tokens and the real typefaces, but it draws the layout rather than
-  running the app. `npm run png` captures a real browser when one is available.
+  running the app. The images in `docs/screens` are 1280x820, which is the
+  renderer's own default, so they came from that path and not from a browser.
+  `npm run png` captures the real app at 1400x900 when a browser is available.
 
 ## Layout
 
@@ -101,7 +107,7 @@ server.mjs            one node:http server, static files + JSON API, no dependen
 src/core/             kdf, crypto, wrap, vault, totp, backup codes, parsers, seed
 src/web/              the client: tokens, components, app, themes page, brands, fonts
 src/web/heroicons/    vendored Heroicons solid, MIT, licence beside them
-test/                 217 cases: crypto, TOTP, parsers, contrast, API, and the real client in jsdom
+test/                 429 cases: crypto, TOTP, parsers, contrast, API, and the real client in jsdom
 tools/                icon and brand generation, the renderer, the Playwright capture
 docs/BRAND.md         the identity: mark, wordmark, colour, clear space
 ```
