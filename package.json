@@ -26,7 +26,9 @@
     "ext": "node tools/package-extension.mjs",
     "test:ext": "node --test test/extension.test.mjs",
     "desktop": "electron .",
-    "test:desktop": "node --test test/desktop.test.mjs"
+    "test:desktop": "node --test test/desktop.test.mjs",
+    "test:mobile": "node --test test/mobile.test.mjs test/pairing.test.mjs",
+    "test:pair": "node --test test/pairing-api.test.mjs"
   },
   "license": "UNLICENSED",
   "devDependencies": {
