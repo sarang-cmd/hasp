@@ -691,6 +691,24 @@ describe("other views", () => {
     assert.match(document.getElementById("app").textContent, /Acme/);
   });
 
+  test("the devices view pairs a phone and draws the code", async () => {
+    document.querySelector('[data-view="devices"]').dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await settle(3);
+    assert.match(document.getElementById("app").textContent, /Pair a phone/);
+    assert.match(document.getElementById("app").textContent, /cannot read a stored secret/i);
+
+    const button = document.querySelector("[data-pair-start]");
+    assert.ok(button, "there is no pairing button");
+    button.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await settle(8);
+
+    const code = document.querySelector(".paircode");
+    assert.ok(code, "no pairing code was drawn");
+    // The shape a person has to read out: eight groups, then the checksum.
+    assert.match(code.textContent.trim(), /^[A-Z2-7]{4}(-[A-Z2-7]{4}){7}-[A-Z2-7]{2}$/);
+    assert.match(document.getElementById("app").textContent, /Do not leave it on screen/);
+  });
+
   test("back to the vault, the list is still there", async () => {
     document.querySelector('[data-view="vault"]').dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await settle(3);

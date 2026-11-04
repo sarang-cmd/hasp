@@ -366,19 +366,29 @@ function renderActivity() {
 function renderDevices() {
   return {
     title: "Devices",
-    sub: "Where this vault is unlocked",
+    sub: "Where this vault is unlocked, and what may read codes",
     filters: "",
-    body: `<div class="page"><div class="panel">
-      <h2>Devices</h2>
-      <p>The vault key is held in memory on the server for the length of a session. Closing the session drops it.</p>
-      <div class="fieldgrid" style="margin-top:16px">
-        <div><span class="flabel">This browser</span><span class="fvalue">Active session</span></div>
-        <div><span class="flabel">Idle lock</span><span class="fvalue">${Math.round((state.meta.idleMs || 300000) / 60000)} minutes</span></div>
-        <div><span class="flabel">Web</span><span class="fvalue">Not built</span></div>
-        <div><span class="flabel">Extension</span><span class="fvalue">Not built</span></div>
+    body: `<div class="page">
+      <div class="panel">
+        <h2>This machine</h2>
+        <p>The vault key is held in memory by the server for the length of a session. Closing the session drops it.</p>
+        <div class="fieldgrid" style="margin-top:16px">
+          <div><span class="flabel">This browser</span><span class="fvalue">Active session</span></div>
+          <div><span class="flabel">Idle lock</span><span class="fvalue">${Math.round((state.meta.idleMs || 300000) / 60000)} minutes</span></div>
+          <div><span class="flabel">Desktop app</span><span class="fvalue">Same session, same server</span></div>
+          <div><span class="flabel">Browser extension</span><span class="fvalue">Same session, same server</span></div>
+        </div>
       </div>
-      <p class="hint">Device records, revocation and the extension unlock flow are phase 2 work. This page says so rather than showing invented devices.</p>
-    </div></div>`,
+      <div class="panel" id="pair-panel">
+        <h2>Pair a phone</h2>
+        <p>A paired phone can read the current one-time codes. It cannot read a stored secret, a backup code set, or the vault file.</p>
+        <div id="pair-body"><button class="btn btn--primary" type="button" data-pair-start>Show a pairing code</button></div>
+      </div>
+      <div class="panel">
+        <h2>Paired devices</h2>
+        <div id="pair-devices"><p class="hint">Reading the device list.</p></div>
+      </div>
+    </div>`,
   };
 }
 
@@ -462,7 +472,7 @@ function render() {
   const view =
     state.view === "import" ? renderImport()
     : state.view === "activity" ? renderActivity()
-    : state.view === "devices" ? renderDevices()
+    : state.view === "devices" ? renderDevices()  // loadDevices() runs after paint, below
     : state.view === "settings" ? renderSettings()
     : renderVault();
 
@@ -506,6 +516,9 @@ function render() {
     <div class="toast" role="status" aria-live="polite"></div>`;
   renderSwitches();
   tickTotp();
+  // The device list is fetched after the shell is in the document, so a slow or
+  // refused request cannot stop the page from painting.
+  if (state.view === "devices") loadDevices();
 }
 
 /* ---------------------------------------------------------------- toast */
@@ -893,6 +906,8 @@ document.addEventListener("click", async (e) => {
   if (drop) return $("input[type=file]", drop)?.click();
 
   if (t.closest("[data-parse-paste]")) return parsePaste();
+  if (t.closest("[data-pair-start]")) return startPairing();
+  if (t.closest("[data-pair-revoke]")) return revokeDevice(t.closest("[data-pair-revoke]").dataset.pairRevoke);
 });
 
 document.addEventListener("input", (e) => {
@@ -959,6 +974,71 @@ async function importFile(file) {
   if (file.size > 8 * 1024 * 1024) return toast("That file is over 8 MB. Export a smaller range.");
   const text = await file.text();
   await runImport(text, file.name);
+}
+
+/**
+ * Show a pairing code for a phone.
+ *
+ * The code is a secret. It is drawn once, on this screen, and the panel says not to
+ * leave it visible: anyone who photographs it can pair a device that reads codes
+ * until it is revoked below.
+ */
+async function startPairing() {
+  const body = $("#pair-body");
+  if (!body) return;
+  body.innerHTML = `<p class="hint">Generating a code.</p>`;
+  try {
+    const data = await api("/api/pair/start", { method: "POST", body: JSON.stringify({}) });
+    body.innerHTML = `<div class="codebox">
+      <span class="flabel">Pairing code, valid for ${Math.round(data.expiresIn / 60)} minute${data.expiresIn >= 120 ? "s" : ""}</span>
+      <output class="paircode" aria-label="Pairing code">${esc(data.code)}</output>
+      <p class="hint">On the phone, open Hasp, enter this machine's address and this code. Do not leave it on screen.</p>
+      <button class="btn btn--quiet" type="button" data-pair-start>Hide the code</button>
+    </div>`;
+    const button = body.querySelector("[data-pair-start]");
+    if (button) button.textContent = "Hide the code";
+    // Hide it if the panel is left open. A code on an unattended screen is the
+    // whole risk.
+    setTimeout(() => {
+      const stillThere = $("#pair-body .paircode");
+      if (stillThere) stillThere.closest(".codebox")?.remove();
+    }, 120000);
+  } catch (err) {
+    body.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+  }
+}
+
+/** The paired devices, and the button that revokes one. */
+async function loadDevices() {
+  const list = $("#pair-devices");
+  if (!list) return;
+  try {
+    const data = await api("/api/pair/devices");
+    const devices = data.devices || [];
+    list.innerHTML = devices.length
+      ? `<ul class="notes">${devices
+          .map(
+            (d) => `<li class="note is-on"><span class="note-meta">Paired ${esc(new Date(d.pairedAt).toLocaleDateString())}</span>
+              <p>${esc(d.label)}</p>
+              <button class="btn btn--quiet" type="button" data-pair-revoke="${esc(d.id)}">Revoke</button></li>`,
+          )
+          .join("")}</ul>
+        <p class="hint">Revoking takes effect at once. A revoked phone is told to pair again.</p>`
+      : `<p class="hint">No phone is paired. A paired phone can read the current one-time codes and nothing else.</p>`;
+  } catch (err) {
+    list.innerHTML = `<p class="error">${esc(err.message)}</p>`;
+  }
+}
+
+async function revokeDevice(id) {
+  if (!id) return;
+  try {
+    await api(`/api/pair/devices?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+    toast("Device revoked");
+    await loadDevices();
+  } catch (err) {
+    toast(err.message);
+  }
 }
 
 async function parsePaste() {
