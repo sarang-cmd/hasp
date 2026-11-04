@@ -1,6 +1,6 @@
 Hasp implementation plan for review
 
-Status: proposed. The repository contains design mockups and planning documents. It does not contain a working vault or deployable product. No infrastructure has been provisioned as part of this plan.
+Status: proposed. The repository contains design mockups and a local web vault prototype. The prototype is for synthetic data only and is not ready for production or real secrets. The repository does not establish whether any external infrastructure has been provisioned.
 
 Purpose
 
@@ -9,7 +9,7 @@ Build a secret manager for API keys, personal access tokens, backup codes and on
 Decisions for your review
 
 1. Release order. Recommended: web dashboard and browser extension first, then desktop, then mobile. You requested all four surfaces. This order delivers all four in stages, not a reduced final scope. Please approve or change the order.
-2. Name and design. Choose a working name and one of the twelve directions. Check trademark and domain availability before a public launch.
+2. Name and design. Hasp is the working name. Foundry and Nightshift are selected, with light and dark modes for each. Check trademark and domain availability before a public launch.
 3. First release audience. Choose internal testing, invited beta, or public release. Recommended: internal testing with synthetic data, followed by a limited beta only after security review.
 4. Client encryption and recovery. Approve a client-side encryption model and recovery approach after a security specialist reviews the detailed design. Decide whether losing both the master password and recovery key means permanent loss of vault access. Do not promise zero knowledge until the implementation and metadata exposure are verified.
 5. AI processing. Choose whether hosted AI labeling is allowed, whether it is enabled in the first release, and which provider and region are acceptable. Recommended: local rules first, hosted processing disabled until explicit opt-in and a reviewed data flow exist. Redaction alone does not guarantee removal of secrets.
@@ -21,18 +21,20 @@ Decisions for your review
 
 Architecture proposal
 
-Use a TypeScript monorepo. Share item models, validation, cryptographic interfaces, import parsers and test vectors across clients. Use a web app and API hosted on Vercel, Neon Postgres and Neon Auth for identity and sync, and Cloudflare DNS. Add R2 only where a reviewed file workflow needs it. Add Resend for transactional email, PostHog for privacy-reviewed events, Stripe for billing when approved, and 9Router for optional AI processing. Linear tracks work if connected and authorized.
+Consider a TypeScript monorepo after review. The current prototype is a single Node.js package, not the proposed monorepo. Share item models, validation, cryptographic interfaces, import parsers and test vectors across clients. Use a web app and API hosted on Vercel, Neon Postgres and Neon Auth for identity and sync, and Cloudflare DNS. Add R2 only where a reviewed file workflow needs it. Add Resend for transactional email, PostHog for privacy-reviewed events, Stripe for billing when approved, and 9Router for optional AI processing. Linear tracks work if connected and authorized.
+
+The current prototype performs cryptographic operations on the Node server, and plaintext passes between the browser and server. It is not the proposed client-side encryption architecture. It uses a seeded sample password, scrypt and ChaCha20-Poly1305 with a 12-byte nonce. Sessions, throttling and pending imports are process-local. It is not a hosted multi-user service. The implementation agent must review whether to replace or migrate the prototype before accepting real data.
 
 The existing PLAN.md contains an earlier architecture proposal, including specific cryptographic choices, sync rules and schedules. Treat those as candidates, not implemented guarantees. Resolve differences in an approved technical design before coding. In particular, define authentication separately from vault key custody, document visible metadata and avoid claiming encrypted backups or recovery without tested implementations.
 
 Delivery phases
 
 Phase 0. Confirm scope and foundations.
-Record the decisions above, choose the design, threat model and acceptance criteria. Set up the repository, isolated development and staging environments, CI, dependency scanning and a release process. Confirm current vendor APIs and platform requirements before selecting SDK versions.
+Record the remaining decisions above, confirm the selected designs, threat model and acceptance criteria. Set up the repository, isolated development and staging environments, CI, dependency scanning and a release process. Confirm current vendor APIs and platform requirements before selecting SDK versions.
 Exit: reviewed architecture and threat model, reproducible builds, test environments and named owners. No real customer secrets.
 
 Phase 1. Shared vault and web dashboard.
-Implement account sessions, reviewed key derivation and encryption, local vault operations, encrypted sync, conflict handling, search, labels, environment selection, backup codes and time-based one-time codes. Add create, edit, delete, reveal, copy, lock and recovery flows. Test authorization, offline behavior, recovery and accessibility. The server must not receive plaintext secret values through normal vault operations.
+Assess the existing prototype and identify reusable code before implementing the target architecture. Implement account sessions, reviewed key derivation and encryption, local vault operations, encrypted sync, conflict handling, search, labels, environment selection, backup codes and time-based one-time codes. Add create, edit, delete, reveal, copy, lock and recovery flows. Test authorization, offline behavior, recovery and accessibility. For the proposed client-side encryption architecture, the server must not receive plaintext secret values through normal vault operations. The current prototype does not meet this target.
 Exit: end-to-end tests with synthetic data, verified access isolation, tested recovery and security review of the cryptographic implementation.
 
 Phase 2. Browser extension.

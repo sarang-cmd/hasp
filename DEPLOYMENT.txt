@@ -1,51 +1,32 @@
 HASP DEPLOYMENT GUIDE
 
-This guide covers two separate releases: the existing design preview and the future Hasp product. The repository currently contains mockups and a plan. The vault, authentication, sync, API, browser extension, desktop app and mobile app have not been implemented. Deploying this repository publishes a design preview, not a working secret manager.
+Status
 
-1. PUBLISH THE DESIGN PREVIEW
+The repository contains static design mockups and a local web vault prototype. Neither is a production deployment. The prototype processes plaintext and keys in the Node server, uses a known sample password, has no accounts or sync, and has not received independent security review. Use synthetic data only. Do not expose the prototype to an untrusted network or put real secrets into it. The extension, desktop and mobile products are not implemented.
 
-Before you publish
+1. REVIEW THE EXISTING PREVIEWS
 
-The preview contains sample vault data and company marks. Treat the sample values as demonstrations, not real credentials. Review the preview and brand usage before public distribution. Anyone with access to the deployment can view the files and sample content.
+Static design mockups
 
-The entry page is mockups/index.html. The brand library is mockups/brands.html. The implementation plan is PLAN.md at the repository root. The pages use local assets, so deploy the repository root rather than the mockups directory. This preserves relative links to PLAN.md. No database, API key or logo.dev token is required to view the preview.
+Open mockups/index.html from the checkout. Open mockups/brands.html for the brand library. The mockups contain invented values and company marks. Review brand usage and access restrictions before sharing them.
 
-Deploy through the Vercel dashboard
+If you publish a static mockup preview, prepare a separate, explicitly selected static-only output containing the mockups and any documents you intend to publish. Review every file in the output before upload. Do not publish the repository root, source code, local vault files, environment files or credentials as a static site. Links to files outside the output will not work until those files are deliberately included or the links are changed. No static deployment configuration is provided or verified here. Follow the hosting provider's current instructions for a static site and verify access restrictions, links, fonts and images after publishing. A static mockup deployment does not deploy the web vault.
 
-1. Sign in to Vercel and import the GitHub repository sarang-cmd/sarang-auth. Grant repository access if prompted.
-2. Select the branch and commit you intend to publish. The production branch should be main after you review the changes.
-3. Keep the project root set to the repository root. Select Other as the framework preset. Leave install and build commands empty. Set the output directory to the repository root, represented by a single period, if the project settings ask for an output directory.
-4. Deploy. Vercel provides a deployment URL. Open the URL followed by /mockups/index.html.
-5. Open /mockups/brands.html. Test search, a category filter, reset, and the links to the direction pages. Open the implementation plan link and check images and fonts on desktop and mobile.
-6. If deployment protection is enabled, sign in as an authorized viewer or adjust the project protection settings after reviewing your intended audience.
+Local web prototype
 
-A request to the deployment root is not the preview entry page. Use /mockups/index.html as the shared link. If you want a shorter URL later, add and test an explicit redirect in Vercel configuration.
+Install Node.js 22.6 or later and run npm install, then npm test. See README.md for the current start command and sample password. By default the server writes a sample vault to .vault/vault.json. HASP_EPHEMERAL=1 prevents this persistence for a new run. Existing vault files are not deleted by that setting.
 
-Deploy from a local checkout
+The current server binds to 0.0.0.0 and serves plain HTTP. That may make the preview reachable from other devices on the network, and passwords and data sent over HTTP are not protected in transit. Run only in an isolated, trusted environment and block external access. Do not forward its port, publish a live preview, or treat loopback in the printed URL as proof of restricted binding. Stop the process after review. The local prototype and its sample password are not appropriate for a public or production deployment.
 
-Install Node.js and Git, clone the repository, and check out the reviewed commit. From the repository root run:
+Deployment decisions
 
-npx vercel
+You: Choose whether any mockups should be shared, who can view them, and the domain and budget for any later product deployment. Review the output before publication.
 
-Follow the prompts to sign in, link or create a project, and confirm the repository root and static project settings. The command creates a preview deployment. Once the preview passes review, run:
-
-npx vercel --prod
-
-Open the resulting URL with /mockups/index.html appended. Do not commit the local .vercel project directory or any credentials. Dashboard and CLI settings should agree on the project root and output directory.
-
-Custom domain
-
-Add the domain in the Vercel project domain settings. Follow the DNS records shown there in Cloudflare. Verify the domain and TLS certificate in Vercel before sharing the HTTPS URL. DNS propagation and certificate issuance take time. Avoid adding conflicting records, and follow Vercel's current Cloudflare proxy guidance if domain verification fails.
-
-Updating and rolling back
-
-With Git integration, a push to the configured production branch creates a new production deployment. Review a preview deployment before merging. To roll back, use the Vercel deployment dashboard to promote a known good deployment or revert the change in Git and redeploy. Confirm the entry page, brand library and images after rollback.
-
-The generated HTML and PNG files are already in the repository. A normal preview deployment does not need to regenerate them. If editing a generator, rebuild and review the generated files locally using the instructions in PLAN.md before deploying.
+Implementation agent: Inspect the current code, document the chosen architecture and deployment packaging, and demonstrate isolation and security before proposing a staging deployment. Do not assume a static Vercel configuration runs the Node server or provides durable storage.
 
 2. PREPARE THE FUTURE PRODUCT
 
-The steps below describe the work and release gates required after the product is built. They are not commands for the current repository. Do not store real secrets in mockups, test fixtures, logs, analytics, issue reports or AI prompts.
+The steps below describe proposed work and release gates for the future product. The current prototype is not a production implementation, and these are not deployment commands for it. Do not store real secrets in mockups, test fixtures, logs, analytics, issue reports or AI prompts.
 
 Accounts and environments
 
@@ -53,7 +34,7 @@ Create separate development, staging and production environments. Use separate N
 
 Vercel and web application
 
-Implement the application and API before configuring a production build. Add a documented package manager lockfile, build, test, lint and migration commands. Connect the application repository to Vercel and configure environment values separately for development, preview and production. Mark sensitive values as secrets in the platform. Never expose server credentials through browser-accessible environment variables or client bundles.
+Implement and review the target application and API before configuring a production build. A lockfile and test command exist for the prototype. Add and verify the target build, lint and migration commands. Connect the application repository to Vercel and configure environment values separately for development, preview and production. Mark sensitive values as secrets in the platform. Never expose server credentials through browser-accessible environment variables or client bundles.
 
 Use a staging domain and production domain with HTTPS. Configure security headers and the authentication callback and allowed origin lists for each environment. Test sign-in, sign-out, session expiry and rejected cross-origin requests. Avoid exposing secrets in error pages, server logs, build output and source maps.
 
