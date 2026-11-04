@@ -808,3 +808,20 @@ body.is-touring { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .tour-hole, .tour-card { transition: none; }
 }
+
+/* Pairing a phone. The code is the one thing on this page that has to be read from
+   across a desk, so it is the largest type in the interface. */
+.codebox { display: grid; gap: 8px; }
+
+.paircode {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, monospace;
+  font-size: clamp(20px, 2.6vw, 28px);
+  letter-spacing: 0.1em;
+  font-weight: 600;
+  padding: 14px 16px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--panel-2, transparent);
+  user-select: all;
+  word-break: break-all;
+}

@@ -1,0 +1,23 @@
+{
+  "name": "hasp-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A reader for the one-time codes in a vault running on your machine. Pair once, on the same network.",
+  "scripts": {
+    "add:ios": "npx cap add ios",
+    "add:android": "npx cap add android",
+    "sync": "npx cap sync",
+    "open:ios": "npx cap open ios",
+    "open:android": "npx cap open android"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.0.0"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.0.0",
+    "@capacitor/app": "^8.0.0",
+    "@capacitor/haptics": "^8.0.0",
+    "@capacitor/preferences": "^8.0.0"
+  }
+}

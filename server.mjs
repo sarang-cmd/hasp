@@ -24,7 +24,7 @@ import { randomBytes } from "node:crypto";
 import { Vault } from "./src/core/vault.js";
 import { KDF } from "./src/core/kdf.js";
 import { totp } from "./src/core/totp.js";
-import { COOKIE, createSession, readSession, forget, remainingMs, IDLE_MS } from "./src/core/session.js";
+import { COOKIE, createSession, readSession, forget, remainingMs, IDLE_MS, anyLiveSession } from "./src/core/session.js";
 
 /**
  * The SHA-256 of the inline boot script in src/web/index.html, as a CSP source.
@@ -41,6 +41,7 @@ import { seedVault, SAMPLE_PASSWORD } from "./src/core/seed.js";
 import { fetchLogo, keyFromEnv, publicKeyFromEnv } from "./src/core/logodev.js";
 import { parseAuthenticatorExport } from "./src/core/authenticator.js";
 import { authImportToCandidates, looksLikeAuthenticator } from "./src/core/authimport.js";
+import { newPairingSecret, formatCode, parseCode, verify, codeList, deviceLabel } from "./src/core/pairing.js";
 import { load as loadEnv } from "./src/core/env.mjs";
 
 const ROOT = resolve(import.meta.dirname);
@@ -79,6 +80,12 @@ const MAX_BODY = 8 * 1024 * 1024;
 
 /** One vault for the preview. */
 let vault = null;
+
+/** A pending pairing and the paired devices. Memory only: a restart revokes all. */
+let pairing = null;
+let devices = [];
+const pairingSeen = new Map();
+const PAIRING_TTL = 120;
 let bootPassword = null;
 
 /**
@@ -283,7 +290,12 @@ async function route(req, res) {
 
   /* ---- everything below needs a session */
   const s = session(req);
-  if (path.startsWith("/api/") && !s) return json(res, 401, { error: "Locked" });
+
+  // The pairing routes are the exception, and only they. A phone has no session
+  // cookie and never gets one: it proves possession of a pairing secret instead.
+  // Everything else under /api/ still requires the session.
+  const pairingRoute = path === "/api/pair" || path === "/api/pair/codes";
+  if (path.startsWith("/api/") && !s && !pairingRoute) return json(res, 401, { error: "Locked" });
 
   // Logo proxy. The logo.dev secret key lives in the environment and is used here,
   // on the server. The browser only ever asks this route for a hostname, so the key
@@ -410,6 +422,98 @@ async function route(req, res) {
     }
     await persist();
     return json(res, 200, { added, skipped });
+  }
+
+  /* ---- pairing a phone */
+  //
+  // These two routes are the only ones a device without a session may call, and
+  // both are gated on a signature rather than a cookie. The phone never holds the
+  // master password and never receives a stored secret: see codeList in
+  // src/core/pairing.js for the whitelist of what it can see.
+
+  // A pending pairing, held in memory only. It is shown once and forgotten, so a
+  // restart cancels a pairing nobody completed.
+  if (path === "/api/pair/start" && method === "POST") {
+    if (!s) return json(res, 401, { error: "Locked" });
+    const code = newPairingSecret();
+    pairing = { code, secret: code.slice(0, 32), createdAt: Date.now() };
+    // The formatted code is shown on the machine's own screen. It is not logged.
+    return json(res, 200, { code: formatCode(code), expiresIn: PAIRING_TTL });
+  }
+
+  if (path === "/api/pair" && method === "POST") {
+    // Proving possession of the code is the whole handshake: the request is signed
+    // with the secret the code encodes, so a wrong code is a bad signature rather
+    // than a comparison the network could watch.
+    // The state of the pairing is checked before the signature. A phone with a
+    // stale code deserves to be told there is nothing to pair with, rather than
+    // being told its signature is wrong and sent looking for the wrong problem.
+    if (!pairing) return json(res, 400, { error: "No pairing is in progress." });
+    if (Date.now() - pairing.createdAt > PAIRING_TTL * 1000) {
+      pairing = null;
+      return json(res, 400, { error: "The pairing code expired. Start again." });
+    }
+    const headers = {
+      deviceId: req.headers["x-hasp-device"],
+      timestamp: req.headers["x-hasp-time"],
+      nonce: req.headers["x-hasp-nonce"],
+      signature: req.headers["x-hasp-signature"],
+      method,
+      path,
+    };
+    const result = verify(pairing.secret, headers, { seen: pairingSeen });
+    if (!result.ok) {
+      const message =
+        result.error === "stale"
+          ? "The phone clock is too far from this machine."
+          : result.error === "replayed"
+            ? "That request was already used."
+            : "That code is not right.";
+      return json(res, 401, { error: message });
+    }
+    const label = deviceLabel(req.headers["x-hasp-device-name"]);
+    devices.push({ id: String(headers.deviceId), label, secret: pairing.secret, pairedAt: new Date().toISOString() });
+    pairing = null;
+    return json(res, 200, { paired: true, label });
+  }
+
+  // The only route a paired phone may read. It returns codes and nothing else.
+  if (path === "/api/pair/codes" && method === "GET") {
+    const headers = {
+      deviceId: req.headers["x-hasp-device"],
+      timestamp: req.headers["x-hasp-time"],
+      nonce: req.headers["x-hasp-nonce"],
+      signature: req.headers["x-hasp-signature"],
+      method,
+      path,
+    };
+    const device = devices.find((d) => d.id === headers.deviceId);
+    if (!device) return json(res, 401, { error: "This device is not paired." });
+    const result = verify(device.secret, headers, { seen: pairingSeen });
+    if (!result.ok) {
+      return json(res, 401, {
+        error: result.error === "stale" ? "The phone clock is too far from this machine." : "Not accepted.",
+      });
+    }
+    // A phone has no session cookie, so "is this request signed in" is the wrong
+    // question. The vault is readable when somebody has it unlocked, which is what
+    // anyLiveSession answers. A device is still paired either way, so a locked
+    // vault is 423 rather than 401: the app says unlock it, not pair again.
+    if (!anyLiveSession()) return json(res, 423, { error: "The vault is locked." });
+    return json(res, 200, { codes: codeList(vault.listFiltered().map(decorate)) });
+  }
+
+  if (path === "/api/pair/devices" && method === "GET") {
+    if (!s) return json(res, 401, { error: "Locked" });
+    return json(res, 200, { devices: devices.map(({ secret, ...d }) => d) });
+  }
+
+  if (path === "/api/pair/devices" && method === "DELETE") {
+    if (!s) return json(res, 401, { error: "Locked" });
+    const id = url.searchParams.get("id") || "";
+    const before = devices.length;
+    devices = devices.filter((d) => d.id !== id);
+    return json(res, 200, { removed: before - devices.length });
   }
 
   /* ---- export */
@@ -562,8 +666,19 @@ const server = createServer((req, res) => {
 
 await bootVault();
 
-server.listen(PORT, "0.0.0.0", () => {
+// A phone on the same network needs this reachable, which means listening beyond
+// loopback. That is a decision with a cost: the vault answers other devices, and
+// the only gate on the pairing routes is a signature. So it is opt in, and the
+// startup line says which mode it is in.
+const HOST = process.env.HASP_HOST || "127.0.0.1";
+
+server.listen(PORT, HOST, () => {
   console.log(`Hasp on http://localhost:${PORT}`);
+  if (HOST === "0.0.0.0") {
+    console.log("Reachable on the local network. Pairing a phone uses plain http.");
+  } else {
+    console.log("Loopback only. Set HASP_HOST=0.0.0.0 to pair a phone on this network.");
+  }
   console.log(`Idle lock: ${IDLE_MS / 60000} minutes. Storage: ${EPHEMERAL ? "in memory only" : relative(ROOT, VAULT_FILE) || VAULT_FILE}`);
 });
 
