@@ -1,10 +1,10 @@
 Hasp task list
 
-Status: proposed. All tasks are open. Owners marked You require your decision or action. Owners marked Agent require access and approval where applicable. Reviewer means an independent specialist or appointed owner. Phase gates do not imply completed work.
+Status: proposed. Foundry and Nightshift are selected and a sample-only dashboard preview is available. All other tasks remain open. Owners marked You require your decision or action. Owners marked Agent require access and approval where applicable. Reviewer means an independent specialist or appointed owner. Phase gates do not imply completed work.
 
 Decisions and access
 
-- [ ] You: Select product name and design direction.
+- [ ] You: Select product name. Foundry and Nightshift are the selected design directions.
 - [ ] You: Approve release sequence and first release audience.
 - [ ] You: Confirm browsers and desktop and mobile operating systems, including Linux support.
 - [ ] You: Approve import priorities and supported source investigation.

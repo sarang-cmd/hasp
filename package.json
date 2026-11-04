@@ -1,0 +1,11 @@
+{
+  "name": "hasp-foundry",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node app/server.mjs",
+    "test": "node --test"
+  },
+  "engines": { "node": ">=18" }
+}

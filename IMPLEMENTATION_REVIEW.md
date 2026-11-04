@@ -1,6 +1,6 @@
 Hasp implementation plan for review
 
-Status: proposed. The repository contains design mockups and planning documents. It does not contain a working vault or deployable product. No infrastructure has been provisioned as part of this plan.
+Status: proposed. Foundry and Nightshift are the selected directions. The repository contains design mockups, planning documents and a sample-only dashboard preview. It does not contain a working vault or deployable product. No infrastructure has been provisioned as part of this plan.
 
 Purpose
 
@@ -9,7 +9,7 @@ Build a secret manager for API keys, personal access tokens, backup codes and on
 Decisions for your review
 
 1. Release order. Recommended: web dashboard and browser extension first, then desktop, then mobile. You requested all four surfaces. This order delivers all four in stages, not a reduced final scope. Please approve or change the order.
-2. Name and design. Choose a working name and one of the twelve directions. Check trademark and domain availability before a public launch.
+2. Name and design. Foundry and Nightshift are selected, with light and dark modes. Choose a working name. Check trademark and domain availability before a public launch.
 3. First release audience. Choose internal testing, invited beta, or public release. Recommended: internal testing with synthetic data, followed by a limited beta only after security review.
 4. Client encryption and recovery. Approve a client-side encryption model and recovery approach after a security specialist reviews the detailed design. Decide whether losing both the master password and recovery key means permanent loss of vault access. Do not promise zero knowledge until the implementation and metadata exposure are verified.
 5. AI processing. Choose whether hosted AI labeling is allowed, whether it is enabled in the first release, and which provider and region are acceptable. Recommended: local rules first, hosted processing disabled until explicit opt-in and a reviewed data flow exist. Redaction alone does not guarantee removal of secrets.

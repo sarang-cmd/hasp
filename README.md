@@ -2,7 +2,9 @@
 
 A vault for API keys, backup codes and one-time codes, with a browser extension, a web dashboard, a desktop app and a mobile app.
 
-This repository currently holds the design exploration and the implementation plan. No product code yet. Twelve directions, six light and six dark, 72 rendered images.
+This repository contains the design exploration, implementation plan and an early Foundry and Nightshift dashboard preview. The preview uses sample metadata only. Secure storage, accounts and sync are not implemented. Do not enter real secrets. Twelve design directions, six light and six dark, include 72 rendered images.
+
+Run the dashboard locally with Node.js 18 or later. Run `npm run dev`, then open `http://localhost:3000`. Run `npm test` for the filtering tests. No external packages or credentials are required. Use the design and mode selectors to choose Foundry or Nightshift in light or dark mode. The browser remembers each design's mode locally when storage is available.
 
 - `mockups/browse.html` is the browser: filter light or dark, open a direction, see every screen.
 - `mockups/index.html` lists twelve visual directions.

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e9e7df">
+  <title>Vault | Hasp</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to vault</a>
+<div class="shell">
+  <aside class="sidebar" aria-label="Workspace">
+    <a class="brand" href="/" aria-label="Hasp home"><span class="brand-symbol" aria-hidden="true">▦</span> Hasp</a>
+    <p class="workspace">WORKSPACE <span>01</span></p>
+    <p class="workspace-name">Personal vault <span aria-hidden="true">⌄</span></p>
+    <nav aria-label="Main navigation">
+      <a class="nav-current" href="#main" aria-current="page"><span aria-hidden="true">▣</span> Vault <span class="nav-count">08</span></a>
+    </nav>
+    <div class="sidebar-bottom"><div class="status-dot">Demo workspace</div><p id="sidebar-design">Foundry / Preview 01</p></div>
+  </aside>
+  <main id="main" tabindex="-1">
+    <div class="demo-notice"><strong>DEMO MODE</strong><span>Sample records only. Do not enter real secrets. Storage, accounts and sync are not active.</span></div>
+    <header class="heading">
+      <div><p class="eyebrow">YOUR WORKSPACE <span>/</span> 01</p><h1>Vault<span class="heading-period">.</span></h1><p class="subtitle">Your keys and codes, in one place.</p></div>
+      <div class="appearance" aria-label="Appearance settings">
+        <label for="design">Design</label>
+        <select id="design"><option value="foundry">Foundry</option><option value="nightshift">Nightshift</option></select>
+        <label for="mode">Mode</label>
+        <select id="mode"><option value="light">Light</option><option value="dark">Dark</option></select>
+      </div>
+    </header>
+    <section aria-label="Vault records" class="vault">
+      <div class="section-heading"><div><p class="eyebrow">INVENTORY / 01</p><h2>All items <span id="total-count">08</span></h2></div><span class="section-note">SAMPLE DATA</span></div>
+      <div class="toolbar">
+        <div class="tabs" role="group" aria-label="Filter by type">
+          <button class="tab active" data-type="All" aria-pressed="true">All <span id="all-count"></span></button>
+          <button class="tab" data-type="API key" aria-pressed="false">API keys</button>
+          <button class="tab" data-type="Personal token" aria-pressed="false">Tokens</button>
+          <button class="tab" data-type="Backup codes" aria-pressed="false">Backup codes</button>
+        </div>
+        <div class="controls"><label class="search"><span aria-hidden="true">⌕</span><span class="sr-only">Search sample records</span><input id="search" type="search" placeholder="Search records" autocomplete="off"><kbd>/</kbd></label><label class="sr-only" for="environment">Filter by environment</label><select id="environment"><option value="all">All environments</option><option value="production">Production</option><option value="staging">Staging</option><option value="personal">Personal</option></select></div>
+      </div>
+      <div class="content"><div class="list"><div class="table-head" aria-hidden="true"><span>ITEM</span><span>ENVIRONMENT</span><span>TYPE</span></div><div id="items" aria-label="Sample items"></div><p id="empty" class="empty" hidden>No matching records. Try another search or filter.</p><div class="list-footer"><span id="results" role="status" aria-live="polite"></span><span>DEMO INVENTORY</span></div></div>
+      <aside class="detail" aria-label="Selected item details"><div id="detail"></div></aside></div>
+    </section>
+    <footer class="footer"><span id="footer-design">HASP / FOUNDRY</span><span>Built for a clearer view of your keys.</span><span>DESIGN PREVIEW</span></footer>
+  </main>
+</div>
+</body></html>
