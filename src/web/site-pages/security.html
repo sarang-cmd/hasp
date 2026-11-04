@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Security · Hasp</title>
+<meta name="description" content="What Hasp guarantees, what it does not, and the threat model. Tested, not audited. The cipher and its parameters are stated exactly.">
+<link rel="canonical" href="https://hasp.dev/security">
+<meta name="theme-color" content="#f6f5f1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Security · Hasp">
+<meta property="og:description" content="What Hasp guarantees, what it does not, and the threat model. Tested, not audited. The cipher and its parameters are stated exactly.">
+<meta property="og:image" content="https://raw.githubusercontent.com/sarang-cmd/hasp/main/docs/screens/social.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:url" content="https://hasp.dev/security">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/site-pages/site.css">
+<link rel="preload" href="/fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Hasp","applicationCategory":"SecurityApplication","operatingSystem":"Linux, macOS, Windows","description":"A local-first vault for API keys, backup codes and one-time codes. Runs on your machine with no account and no network access at runtime.","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"isAccessibleForFree":true,"license":"https://opensource.org/licenses/MIT"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Hasp","url":"https://hasp.dev","email":"hello@hasp.dev","description":"A small local-first tool for keeping API keys and one-time codes in order."}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/"><svg viewBox="0 0 128 128" width="22" height="22" aria-hidden="true" focusable="false">
+  <path d="M44 78V56a20 20 0 0 1 40 0v22" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"/>
+  <rect x="18" y="72" width="92" height="34" rx="10" fill="currentColor"/>
+  <circle cx="40" cy="89" r="6" fill="var(--paper)"/><circle cx="88" cy="89" r="6" fill="var(--paper)"/>
+</svg><span>hasp</span></a>
+    <nav class="site-nav" aria-label="Main"><a href="/product">Product</a><a href="/security" aria-current="page">Security</a><a href="/pricing">Pricing</a><a href="/about">About</a><a href="/docs">Docs</a></nav>
+  </div>
+</header>
+<main id="main">
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Security</p>
+    <h1>Tested, not audited.</h1>
+    <p class="lede">That is the honest summary. This page states the guarantees, the gaps,
+      and the threat model, and it names the test that fails if a guarantee is removed.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>What is guaranteed</h2>
+    <dl class="list">
+      <div><dt>The password is never stored</dt><dd>It derives a key with scrypt, and that key unwraps a random vault key. Only the wrapped key reaches disk.</dd></div>
+      <div><dt>Ciphertext is bound to its position</dt><dd>Associated data covers the vault id, the item id and the version. A moved or rolled-back ciphertext fails to open.</dd></div>
+      <div><dt>Wrong password is indistinguishable from a corrupt vault</dt><dd>Both fail at the unwrap with the same error.</dd></div>
+      <div><dt>Nothing is written in plaintext</dt><dd>The vault file is checked after every write for values that should only exist encrypted.</dd></div>
+      <div><dt>Guessing is bounded</dt><dd>Three free attempts, then a doubling wait to a two minute ceiling. A correct password is refused while the wait runs, so the throttle is not an oracle.</dd></div>
+      <div><dt>The browser is constrained</dt><dd>HttpOnly, SameSite=Strict cookies. Cross-origin posts refused. CSP default-src self, with one inline script allowed by hash.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>What is not</h2>
+    <dl class="list">
+      <div><dt>No independent review</dt><dd>The cryptography has not been audited. Tests find the bugs someone thought to test for.</dd></div>
+      <div><dt>Not XChaCha20</dt><dd>The cipher is ChaCha20-Poly1305 with a 12 byte nonce, not the XChaCha20-Poly1305 the plan specifies.</dd></div>
+      <div><dt>Server-side cryptography</dt><dd>Derivation and sealing happen in the Node process, and plaintext crosses the loopback interface. This is not a client-side encryption architecture.</dd></div>
+      <div><dt>No transport security</dt><dd>Hasp serves plain HTTP. Put it behind TLS or bind it to loopback.</dd></div>
+      <div><dt>No defence against a compromised host</dt><dd>If something can read the process memory, it can read the vault key.</dd></div>
+      <div><dt>No key rotation</dt><dd>Changing the master password is not implemented.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>Threat model</h2>
+    <p class="body"><strong>In scope.</strong> Someone with the vault file but not the
+      password. Someone sending requests to a running instance. A stolen device left
+      unlocked, where the idle lock is a speed bump rather than a wall.</p>
+    <p class="body"><strong>Out of scope.</strong> Malware on the machine, a compromised
+      browser, a keylogger, and the operator. A local web app cannot solve those, and
+      claiming otherwise would be the dishonest part of a security page.</p>
+    <p class="body"><a href="/contact">Report a vulnerability</a> privately. Do not open a
+      public issue.</p>
+  </div>
+</section>
+
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="col"><strong>Product</strong><a href="/product">Overview</a><a href="/security">Security</a><a href="/pricing">Pricing</a><a href="/docs">Documentation</a></div><div class="col"><strong>Company</strong><a href="/about">About</a><a href="/contact">Contact</a></div><div class="col"><strong>Legal</strong><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/cookies">Cookies</a></div>
+    <div class="col spacer"><strong>Contact</strong><a href="mailto:hello@hasp.dev">hello@hasp.dev</a></div>
+  </div>
+</footer>
+</body>
+</html>

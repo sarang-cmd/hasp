@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Product · Hasp</title>
+<meta name="description" content="What Hasp does: an encrypted vault, one-time codes, backup code sets, import with review, and two design directions with light and dark modes.">
+<link rel="canonical" href="https://hasp.dev/product">
+<meta name="theme-color" content="#f6f5f1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Product · Hasp">
+<meta property="og:description" content="What Hasp does: an encrypted vault, one-time codes, backup code sets, import with review, and two design directions with light and dark modes.">
+<meta property="og:image" content="https://raw.githubusercontent.com/sarang-cmd/hasp/main/docs/screens/social.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:url" content="https://hasp.dev/product">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/site-pages/site.css">
+<link rel="preload" href="/fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Hasp","applicationCategory":"SecurityApplication","operatingSystem":"Linux, macOS, Windows","description":"A local-first vault for API keys, backup codes and one-time codes. Runs on your machine with no account and no network access at runtime.","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"isAccessibleForFree":true,"license":"https://opensource.org/licenses/MIT"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Hasp","url":"https://hasp.dev","email":"hello@hasp.dev","description":"A small local-first tool for keeping API keys and one-time codes in order."}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/"><svg viewBox="0 0 128 128" width="22" height="22" aria-hidden="true" focusable="false">
+  <path d="M44 78V56a20 20 0 0 1 40 0v22" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"/>
+  <rect x="18" y="72" width="92" height="34" rx="10" fill="currentColor"/>
+  <circle cx="40" cy="89" r="6" fill="var(--paper)"/><circle cx="88" cy="89" r="6" fill="var(--paper)"/>
+</svg><span>hasp</span></a>
+    <nav class="site-nav" aria-label="Main"><a href="/product" aria-current="page">Product</a><a href="/security">Security</a><a href="/pricing">Pricing</a><a href="/about">About</a><a href="/docs">Docs</a></nav>
+  </div>
+</header>
+<main id="main">
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Product</p>
+    <h1>One list, sealed with one password.</h1>
+    <p class="lede">Hasp is a web application that runs on your machine. It holds keys,
+      codes and notes, and it does not contact anything.</p>
+    <div class="hero-actions"><a class="btn" href="/app">Open the demonstration</a></div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>The vault</h2>
+    <p class="body">A list with a search field, a type filter and an environment filter.
+      Selecting a row opens an inspector: the masked secret, its metadata, and the actions
+      that apply to that item.</p>
+    <dl class="list">
+      <div><dt>Create and edit</dt><dd>Name, service, host, type, environment, value and notes.</dd></div>
+      <div><dt>Reveal</dt><dd>Secrets stay masked until asked. Revealing is per item and per session.</dd></div>
+      <div><dt>Copy</dt><dd>The clipboard clears after 30 seconds, and the timer is cancelled when the vault locks.</dd></div>
+      <div><dt>Rotate</dt><dd>Replacing a value keeps the previous version, so a rotation is reversible.</dd></div>
+      <div><dt>Search</dt><dd>Queries match a blind index built from keyed hashes, so the vault never stores the words you searched for.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>Two directions, four surfaces</h2>
+    <p class="body">Direction and mode are independent choices, and the accent is a third
+      axis. That is four surfaces with one set of components, and the contrast floor is
+      checked per combination by the test suite.</p>
+    <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;margin-top:28px">
+      <div>
+        <img class="shot" src="/screens/nightshift-light.png" alt="Nightshift light mode" width="1280" height="820" loading="lazy">
+        <p class="shot-caption">Nightshift, light</p>
+      </div>
+      <div>
+        <img class="shot" src="/screens/foundry-dark.png" alt="Foundry dark mode" width="1280" height="820" loading="lazy">
+        <p class="shot-caption">Foundry, dark</p>
+      </div>
+    </div>
+    <p class="body" style="margin-top:20px">Nightshift is neumorphic: controls sit in the
+      surface instead of on top of it, drawn with a paired light and dark shadow and no
+      visible borders. Foundry is structural: square corners, one pixel rules, and a solid
+      header. Both support black, white and neutral accent styles.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <h2>Import with review</h2>
+    <p class="body">Drop an export in and Hasp parses it into candidates, each with a
+      confidence score. You review before anything is stored, and a parsed import is single
+      use and expires after 30 minutes.</p>
+    <dl class="list">
+      <div><dt>Notes</dt><dd>Google Keep JSON and HTML.</dd></div>
+      <div><dt>Tables</dt><dd>CSV with header detection.</dd></div>
+      <div><dt>Codes</dt><dd>otpauth URIs, and the exports of Aegis, 2FAS, Raivo, Bitwarden, Google Authenticator and Microsoft Authenticator.</dd></div>
+    </dl>
+  </div>
+</section>
+
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="col"><strong>Product</strong><a href="/product">Overview</a><a href="/security">Security</a><a href="/pricing">Pricing</a><a href="/docs">Documentation</a></div><div class="col"><strong>Company</strong><a href="/about">About</a><a href="/contact">Contact</a></div><div class="col"><strong>Legal</strong><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/cookies">Cookies</a></div>
+    <div class="col spacer"><strong>Contact</strong><a href="mailto:hello@hasp.dev">hello@hasp.dev</a></div>
+  </div>
+</footer>
+</body>
+</html>

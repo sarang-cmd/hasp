@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hasp · A local-first vault for the keys you actually use</title>
+<meta name="description" content="Hasp keeps API keys, backup codes and one-time codes in one encrypted vault on your own machine. No accounts, no sync, no network at runtime.">
+<link rel="canonical" href="https://hasp.dev">
+<meta name="theme-color" content="#f6f5f1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Hasp · A local-first vault for the keys you actually use">
+<meta property="og:description" content="Hasp keeps API keys, backup codes and one-time codes in one encrypted vault on your own machine. No accounts, no sync, no network at runtime.">
+<meta property="og:image" content="https://raw.githubusercontent.com/sarang-cmd/hasp/main/docs/screens/social.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:url" content="https://hasp.dev">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/site-pages/site.css">
+<link rel="preload" href="/fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Hasp","applicationCategory":"SecurityApplication","operatingSystem":"Linux, macOS, Windows","description":"A local-first vault for API keys, backup codes and one-time codes. Runs on your machine with no account and no network access at runtime.","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"isAccessibleForFree":true,"license":"https://opensource.org/licenses/MIT"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Hasp","url":"https://hasp.dev","email":"hello@hasp.dev","description":"A small local-first tool for keeping API keys and one-time codes in order."}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/"><svg viewBox="0 0 128 128" width="22" height="22" aria-hidden="true" focusable="false">
+  <path d="M44 78V56a20 20 0 0 1 40 0v22" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"/>
+  <rect x="18" y="72" width="92" height="34" rx="10" fill="currentColor"/>
+  <circle cx="40" cy="89" r="6" fill="var(--paper)"/><circle cx="88" cy="89" r="6" fill="var(--paper)"/>
+</svg><span>hasp</span></a>
+    <nav class="site-nav" aria-label="Main"><a href="/product">Product</a><a href="/security">Security</a><a href="/pricing">Pricing</a><a href="/about">About</a><a href="/docs">Docs</a></nav>
+  </div>
+</header>
+<main id="main">
+
+<section class="hero">
+  <div class="wrap">
+    <h1>The keys you actually use, in one sealed place.</h1>
+    <p class="lede">API keys, backup codes and one-time codes in a single encrypted vault.
+      It runs on your machine and needs no account. Your secrets never leave the disk you chose.</p>
+    <div class="hero-actions">
+      <a class="btn" href="/app">Open the demonstration</a>
+      <a class="btn btn--quiet" href="/product">How it works</a>
+    </div>
+  </div>
+</section>
+
+<div class="wrap">
+  <dl class="facts">
+    <div><dt>Runs on</dt><dd>Your machine, as one Node process</dd></div>
+    <div><dt>Network at runtime</dt><dd>None. Every asset is local</dd></div>
+    <div><dt>Cipher</dt><dd>ChaCha20-Poly1305, 12 byte nonce</dd></div>
+  </dl>
+</div>
+
+<section class="section">
+  <div class="wrap split">
+    <div>
+      <p class="eyebrow">The problem</p>
+      <h2>Your keys are scattered across five tools.</h2>
+      <p class="body">A note in Keep. A text file on the desktop. Three browser tabs you
+        reopened from history. A codes app on the phone that no longer matches the one on
+        the laptop.</p>
+      <p class="body">Hasp puts them in one list you can search, label by environment, and
+        open with a single password.</p>
+    </div>
+    <div>
+      <img class="shot" src="/screens/nightshift-dark.png"
+        alt="The Hasp vault in Nightshift dark mode, showing a list of API keys with an inspector pane showing a masked secret and a live one-time code."
+        width="1280" height="820" loading="lazy" decoding="async">
+      <p class="shot-caption">Nightshift, the default surface. Rendered from the real components.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">What it does</p>
+    <h2>Four things, and it does them properly.</h2>
+    <dl class="list">
+      <div><dt>Stores keys</dt><dd>Each item is sealed under its own key, bound to its
+        position, so a ciphertext moved to another row fails to open instead of opening as
+        something else.</dd></div>
+      <div><dt>Generates codes</dt><dd>RFC 6238 one-time codes with a depletion bar, checked
+        against the RFC's own test vectors.</dd></div>
+      <div><dt>Tracks backup codes</dt><dd>Code sets keep an unused count. There is no copy-all
+        button, because copying a set is how sets end up in a chat log.</dd></div>
+      <div><dt>Imports your exports</dt><dd>Google Keep JSON and HTML, CSV, otpauth URIs, and
+        the JSON dialects of six authenticator apps. Every field carries a confidence score,
+        and anything uncertain goes to review.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap split">
+    <div>
+      <p class="eyebrow">Local first</p>
+      <h2>Nothing leaves the machine.</h2>
+      <p class="body">There is no server to trust. The vault is one encrypted file. The
+        interface is served by the same process that holds the key, and the process makes
+        no outbound request at runtime.</p>
+      <p class="body">That also means no sync, no account recovery and no sharing. Those are
+        real costs. If you need them, Hasp is the wrong tool today.</p>
+    </div>
+    <div>
+      <p class="note"><strong>Sample build.</strong> Every item in the
+demonstration is invented. The sample master password is printed on the unlock
+screen on purpose. Do not put a real secret into this build.</p>
+      <dl class="list" style="margin-top:24px">
+        <div><dt>Dependencies at runtime</dt><dd>None. One Node process and a folder.</dd></div>
+        <div><dt>Assets</dt><dd>586 company marks, nine font files and 25 icons, all vendored.</dd></div>
+        <div><dt>Works offline</dt><dd>Fully, after the first load.</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="col"><strong>Product</strong><a href="/product">Overview</a><a href="/security">Security</a><a href="/pricing">Pricing</a><a href="/docs">Documentation</a></div><div class="col"><strong>Company</strong><a href="/about">About</a><a href="/contact">Contact</a></div><div class="col"><strong>Legal</strong><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/cookies">Cookies</a></div>
+    <div class="col spacer"><strong>Contact</strong><a href="mailto:hello@hasp.dev">hello@hasp.dev</a></div>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cookies · Hasp</title>
+<meta name="description" content="Hasp sets one cookie, to hold your unlocked session. There are no tracking cookies and no consent banner is needed.">
+<link rel="canonical" href="https://hasp.dev/cookies">
+<meta name="theme-color" content="#f6f5f1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Cookies · Hasp">
+<meta property="og:description" content="Hasp sets one cookie, to hold your unlocked session. There are no tracking cookies and no consent banner is needed.">
+<meta property="og:image" content="https://raw.githubusercontent.com/sarang-cmd/hasp/main/docs/screens/social.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:url" content="https://hasp.dev/cookies">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/site-pages/site.css">
+<link rel="preload" href="/fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Hasp","applicationCategory":"SecurityApplication","operatingSystem":"Linux, macOS, Windows","description":"A local-first vault for API keys, backup codes and one-time codes. Runs on your machine with no account and no network access at runtime.","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"isAccessibleForFree":true,"license":"https://opensource.org/licenses/MIT"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Hasp","url":"https://hasp.dev","email":"hello@hasp.dev","description":"A small local-first tool for keeping API keys and one-time codes in order."}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/"><svg viewBox="0 0 128 128" width="22" height="22" aria-hidden="true" focusable="false">
+  <path d="M44 78V56a20 20 0 0 1 40 0v22" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"/>
+  <rect x="18" y="72" width="92" height="34" rx="10" fill="currentColor"/>
+  <circle cx="40" cy="89" r="6" fill="var(--paper)"/><circle cx="88" cy="89" r="6" fill="var(--paper)"/>
+</svg><span>hasp</span></a>
+    <nav class="site-nav" aria-label="Main"><a href="/product">Product</a><a href="/security">Security</a><a href="/pricing">Pricing</a><a href="/about">About</a><a href="/docs">Docs</a></nav>
+  </div>
+</header>
+<main id="main">
+
+<div class="doc"><div class="wrap measure">
+  <h1>Cookies</h1>
+  <p class="updated">Last updated 4 November 2026</p>
+
+  <h2>One cookie</h2>
+  <p>When you unlock the vault, the server sets a session cookie. It is <code>HttpOnly</code>, <code>SameSite=Strict</code>, scoped to the path, and it expires with the session.</p>
+  <p>It holds a random session identifier and nothing else. The vault key stays in the server's memory and is never written into the cookie.</p>
+
+  <h2>Nothing else</h2>
+  <p>There are no analytics cookies, no advertising cookies, no third-party cookies and no localStorage identifiers used for tracking. Appearance settings are stored in <code>localStorage</code> on your device and are never transmitted.</p>
+
+  <h2>Why there is no banner</h2>
+  <p>A consent banner is required for non-essential cookies. The session cookie is strictly necessary to keep the vault open, and nothing else is set, so there is nothing to consent to. If that changes, this page changes first.</p>
+
+  <h2>Removing it</h2>
+  <p>Locking the vault clears the cookie. Clearing your browser's site data does the same. Neither deletes the vault file.</p>
+</div></div>
+
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="col"><strong>Product</strong><a href="/product">Overview</a><a href="/security">Security</a><a href="/pricing">Pricing</a><a href="/docs">Documentation</a></div><div class="col"><strong>Company</strong><a href="/about">About</a><a href="/contact">Contact</a></div><div class="col"><strong>Legal</strong><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/cookies">Cookies</a></div>
+    <div class="col spacer"><strong>Contact</strong><a href="mailto:hello@hasp.dev">hello@hasp.dev</a></div>
+  </div>
+</footer>
+</body>
+</html>

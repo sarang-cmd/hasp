@@ -1,0 +1,15 @@
+# https://hasp.dev
+User-agent: *
+Allow: /
+
+# AI crawlers are welcome. The content is public and the product is MIT licensed.
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://hasp.dev/sitemap.xml
