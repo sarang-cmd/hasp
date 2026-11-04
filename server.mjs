@@ -25,6 +25,7 @@ import { Vault } from "./src/core/vault.js";
 import { KDF } from "./src/core/kdf.js";
 import { totp } from "./src/core/totp.js";
 import { COOKIE, createSession, readSession, forget, remainingMs, IDLE_MS } from "./src/core/session.js";
+import { retryAfter, recordFailure, recordSuccess } from "./src/core/throttle.js";
 import { parseKeepJson, parseKeepHtml, parseOtpExport, parseCsv, parseNote, findDuplicates } from "./src/core/parse.js";
 import { seedVault, SAMPLE_PASSWORD } from "./src/core/seed.js";
 
@@ -192,13 +193,26 @@ async function route(req, res) {
   if (path === "/api/unlock" && method === "POST") {
     const { password } = await body(req);
     if (!vault) return json(res, 503, { error: "Vault not ready" });
+
+    // Bound the guess rate before spending a derivation on it. The key is the
+    // client address: a local vault has one, and a hosted one would need a shared
+    // store. See src/core/throttle.js for what this does and does not cover.
+    const client = req.socket.remoteAddress || "unknown";
+    const wait = retryAfter(client);
+    if (wait > 0) {
+      return json(res, 429, { error: `Too many attempts. Wait ${Math.ceil(wait / 1000)} seconds.` }, { "retry-after": String(Math.ceil(wait / 1000)) });
+    }
+
     // Reopen from disk with the supplied password, so a wrong password is
     // rejected by the key unwrap rather than by a stored hash.
     try {
       vault = await Vault.unlock(vault.serialize(), String(password || ""));
     } catch {
-      return json(res, 401, { error: "Wrong master password" });
+      const delay = recordFailure(client);
+      const extra = delay > 0 ? { retryAfter: Math.ceil(delay / 1000) } : {};
+      return json(res, 401, { error: delay > 0 ? `Wrong master password. Next attempt in ${Math.ceil(delay / 1000)} seconds.` : "Wrong master password", ...extra });
     }
+    recordSuccess(client);
     const id = createSession(vault.meta.id, vault.vaultKeyForSession());
     return json(
       res,
