@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About · Hasp</title>
+<meta name="description" content="Why Hasp exists, what it is built from, and what is deliberately left out. A small local-first tool, not a platform.">
+<link rel="canonical" href="https://hasp.dev/about">
+<meta name="theme-color" content="#f6f5f1">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:title" content="About · Hasp">
+<meta property="og:description" content="Why Hasp exists, what it is built from, and what is deliberately left out. A small local-first tool, not a platform.">
+<meta property="og:image" content="https://raw.githubusercontent.com/sarang-cmd/hasp/main/docs/screens/social.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:url" content="https://hasp.dev/about">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/site-pages/site.css">
+<link rel="preload" href="/fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Hasp","applicationCategory":"SecurityApplication","operatingSystem":"Linux, macOS, Windows","description":"A local-first vault for API keys, backup codes and one-time codes. Runs on your machine with no account and no network access at runtime.","offers":{"@type":"Offer","price":"0","priceCurrency":"EUR"},"isAccessibleForFree":true,"license":"https://opensource.org/licenses/MIT"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"Hasp","url":"https://hasp.dev","email":"hello@hasp.dev","description":"A small local-first tool for keeping API keys and one-time codes in order."}</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/"><svg viewBox="0 0 128 128" width="22" height="22" aria-hidden="true" focusable="false">
+  <path d="M44 78V56a20 20 0 0 1 40 0v22" fill="none" stroke="currentColor" stroke-width="14" stroke-linecap="round"/>
+  <rect x="18" y="72" width="92" height="34" rx="10" fill="currentColor"/>
+  <circle cx="40" cy="89" r="6" fill="var(--paper)"/><circle cx="88" cy="89" r="6" fill="var(--paper)"/>
+</svg><span>hasp</span></a>
+    <nav class="site-nav" aria-label="Main"><a href="/product">Product</a><a href="/security">Security</a><a href="/pricing">Pricing</a><a href="/about" aria-current="page">About</a><a href="/docs">Docs</a></nav>
+  </div>
+</header>
+<main id="main">
+
+<section class="hero">
+  <div class="wrap">
+    <p class="eyebrow">About</p>
+    <h1>A small tool for one job.</h1>
+    <p class="lede">Hasp began as a way to stop keeping API keys in a note-taking app. It
+      stayed small on purpose.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap measure">
+    <h2>Why it exists</h2>
+    <p class="body">API keys accumulate. Each one is generated in a console, pasted into a
+      note, and forgotten until it appears in a log. The tool that should hold them is a
+      password manager, but those are built for passwords: they do not track which
+      environment a key belongs to, when it rotates, or which one a test suite should use.</p>
+    <p class="body">Hasp is a vault that understands keys as items with metadata: a service,
+      a host, an environment, an owner and a rotation habit.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap measure">
+    <h2>What it is built from</h2>
+    <p class="body">One Node process and a folder. The client has no runtime dependencies
+      and no CDN. Icons are Heroicons solid, vendored with their licence. The 586 company
+      marks come from Simple Icons and SVG Logos, vendored so the app works offline. The
+      three typefaces are served from the project.</p>
+    <p class="body">The design system is four token combinations for two directions and two
+      modes, plus three accent styles. The contrast floor is a test, not a promise, and it
+      parses the stylesheet to enforce it.</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="wrap measure">
+    <h2>What is deliberately missing</h2>
+    <p class="body">Sync, accounts, sharing, a browser extension, a desktop app and a mobile
+      app. Each is a real product decision with a real cost, and each is listed on the
+      product page rather than implied by a screenshot.</p>
+    <p class="body">The shorter version: Hasp does one job on one machine, and it says so.</p>
+  </div>
+</section>
+
+</main>
+<footer class="site-foot">
+  <div class="wrap">
+    <div class="col"><strong>Product</strong><a href="/product">Overview</a><a href="/security">Security</a><a href="/pricing">Pricing</a><a href="/docs">Documentation</a></div><div class="col"><strong>Company</strong><a href="/about">About</a><a href="/contact">Contact</a></div><div class="col"><strong>Legal</strong><a href="/privacy">Privacy</a><a href="/terms">Terms</a><a href="/cookies">Cookies</a></div>
+    <div class="col spacer"><strong>Contact</strong><a href="mailto:hello@hasp.dev">hello@hasp.dev</a></div>
+  </div>
+</footer>
+</body>
+</html>
