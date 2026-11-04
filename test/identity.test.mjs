@@ -139,6 +139,50 @@ describe("the mark", () => {
   });
 });
 
+describe("brand index", () => {
+  test("every vendored mark is indexed", async () => {
+    const { readdirSync } = await import("node:fs");
+    const index = JSON.parse(read(join(WEB, 'brands.index.json')));
+    const files = readdirSync(join(WEB, "brands")).filter((f) => f.endsWith(".svg")).map((f) => f.replace(/\.svg$/, ""));
+    assert.equal(Object.keys(index).length, files.length, "index has a different count than the directory");
+    for (const name of files) assert.ok(index[name], `${name} is vendored but not indexed`);
+  });
+
+  test("the index agrees with each file's own viewBox", async () => {
+    // Both are derived from the same files, so a disagreement means the index is
+    // stale, which would silently distort the marks it describes.
+    const { readdirSync } = await import("node:fs");
+    const index = JSON.parse(read(join(WEB, 'brands.index.json')));
+    const dir = join(WEB, "brands");
+    for (const file of readdirSync(dir).filter((f) => f.endsWith(".svg"))) {
+      const slug = file.replace(/\.svg$/, "");
+      const source = read(dir, file);
+      const [, , w, h] = /viewBox="([\d.\-\s]+)"/.exec(source)[1].trim().split(/[\s,]+/).map(Number);
+      assert.deepEqual(index[slug].viewBox, [w, h], `${slug}: index says ${index[slug].viewBox}, file says ${w}x${h}`);
+    }
+  });
+
+  test("the wordmarks are classified as wordmarks", async () => {
+    const index = JSON.parse(read(join(WEB, 'brands.index.json')));
+    // These are full company wordmarks, not square icons. If one is classified as
+    // square it will be drawn into a square tile and distorted.
+    for (const slug of ["groq", "slack", "openai", "twilio", "heroku"]) {
+      assert.equal(index[slug].aspect, "wordmark", `${slug} should be a wordmark, got ${index[slug].aspect}`);
+    }
+    for (const slug of ["github", "stripe", "vercel"]) {
+      assert.equal(index[slug].aspect, "square", `${slug} should be square`);
+    }
+  });
+
+  test("most of the set is square, and the exceptions are known", async () => {
+    const index = JSON.parse(read(join(WEB, 'brands.index.json')));
+    const odd = Object.entries(index).filter(([, v]) => v.aspect !== "square");
+    // Not an arbitrary number: it is what the vendored set actually contains, and a
+    // jump means the brand build changed shape without anyone noticing.
+    assert.equal(odd.length, 61, `expected 61 non-square marks, found ${odd.length}`);
+  });
+});
+
 describe("vendored icons", () => {
   test("the licence ships beside the glyphs", () => {
     const licence = read(WEB, "heroicons/LICENSE");

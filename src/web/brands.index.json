@@ -1,0 +1,5511 @@
+{
+  "1password": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "abstract": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "activision": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "adblock": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "adguard": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "adobe": {
+    "viewBox": [
+      512,
+      134
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#fa0f00"
+    ]
+  },
+  "adyen": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "afterpay": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "agora": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "airbnb": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "airbyte": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "aircall": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "airtable": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "akamai": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "algolia": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "alibabacloud": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "aliexpress": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "alltrails": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "alpinejs": {
+    "viewBox": [
+      512,
+      83
+    ],
+    "aspect": "wordmark",
+    "paths": 3,
+    "colors": [
+      "#2d3441",
+      "#77c1d2"
+    ]
+  },
+  "amazon": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "amd": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "americanexpress": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "amplitude": {
+    "viewBox": [
+      512,
+      107
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#10069f"
+    ]
+  },
+  "angular": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ansible": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "anthropic": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "apacheairflow": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "apachecassandra": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "apachegroovy": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "apachehadoop": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "apachekafka": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "apachespark": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "apachesuperset": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "apollographql": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "apple": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "appsmith": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "appwrite": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "arangodb": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "argocd": {
+    "viewBox": [
+      128,
+      128
+    ],
+    "aspect": "square",
+    "paths": 20,
+    "colors": [
+      "#010101",
+      "#b6cfea",
+      "#d0e8f0",
+      "#e34e3b",
+      "#e6f5f8",
+      "#e9654b",
+      "#ee794b",
+      "#fbdfc3",
+      "#fff"
+    ]
+  },
+  "asana": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "astro": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "atlassian": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "auth0": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "authentik": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "authy": {
+    "viewBox": [
+      256,
+      256
+    ],
+    "aspect": "square",
+    "paths": 3,
+    "colors": [
+      "#f22e46",
+      "#f5b1b2",
+      "#fff"
+    ]
+  },
+  "avast": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "babel": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "backblaze": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "bankofamerica": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "barclays": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "baremetrics": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "basecamp": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "baseten": {
+    "viewBox": [
+      512,
+      112
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": []
+  },
+  "behance": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "betterstack": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "bigcommerce": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "binance": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "bitbucket": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "bitdefender": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "bitly": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "bitwarden": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "bluesky": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "bookingdotcom": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "bootstrap": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "bosch": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "box": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "braintree": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "brave": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "braze": {
+    "viewBox": [
+      512,
+      237
+    ],
+    "aspect": "wide",
+    "paths": 1,
+    "colors": [
+      "#212124"
+    ]
+  },
+  "brevo": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "brex": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "browserstack": {
+    "viewBox": [
+      256,
+      256
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": [
+      "#02b2d6",
+      "#231f20",
+      "#57badf",
+      "#6db64c",
+      "#afdbe7",
+      "#bfd141",
+      "#e53d42",
+      "#e86f32",
+      "#f5bb60",
+      "#fff"
+    ]
+  },
+  "budibase": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "builder-io": {
+    "viewBox": [
+      512,
+      110
+    ],
+    "aspect": "wordmark",
+    "paths": 4,
+    "colors": [
+      "#18b4f4",
+      "#a97ff2",
+      "#fd6b3c"
+    ]
+  },
+  "bun": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "bunnydotnet": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "caldotcom": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "calendly": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "canva": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "cashapp": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "cdprojekt": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "chargebee": {
+    "viewBox": [
+      512,
+      158
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#222"
+    ]
+  },
+  "chartmogul": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "chase": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "chroma": {
+    "viewBox": [
+      256,
+      164
+    ],
+    "aspect": "wide",
+    "paths": 1,
+    "colors": [
+      "#327eff",
+      "#ff6446",
+      "#ffde2d"
+    ]
+  },
+  "chromatic": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "circle": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "circleci": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "clerk": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "clickhouse": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "clickup": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "clojure": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "cloudflare": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "cloudinary": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "cmake": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "cockroachlabs": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "coda": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "codecov": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "codeium": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "codepen": {
+    "viewBox": [
+      512,
+      95
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": []
+  },
+  "codesandbox": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "cohere": {
+    "viewBox": [
+      512,
+      88
+    ],
+    "aspect": "wordmark",
+    "paths": 4,
+    "colors": [
+      "#355146",
+      "#d18ee2",
+      "#ff7759"
+    ]
+  },
+  "coinbase": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "coinmarketcap": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "confluence": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "consul": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "contentful": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "couchbase": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "craft": {
+    "viewBox": [
+      512,
+      269
+    ],
+    "aspect": "wide",
+    "paths": 4,
+    "colors": [
+      "#cb5546"
+    ]
+  },
+  "crystal": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "cursor": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "customerio": {
+    "viewBox": [
+      512,
+      94
+    ],
+    "aspect": "wordmark",
+    "paths": 5,
+    "colors": [
+      "#00ecbb",
+      "#2f326a",
+      "#7131ff",
+      "#af64ff",
+      "#ffcd00"
+    ]
+  },
+  "cypress": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "daily": {
+    "viewBox": [
+      512,
+      176
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": []
+  },
+  "dart": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "dashlane": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "databricks": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "datadog": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "dbt": {
+    "viewBox": [
+      512,
+      196
+    ],
+    "aspect": "wordmark",
+    "paths": 2,
+    "colors": [
+      "#262a38",
+      "#ff694a"
+    ]
+  },
+  "deepgram": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "deepmind": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "deliveroo": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "deno": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "descript": {
+    "viewBox": [
+      512,
+      125
+    ],
+    "aspect": "wordmark",
+    "paths": 2,
+    "colors": [
+      "#651a39",
+      "#f73b3b"
+    ]
+  },
+  "devdotto": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "diagramsdotnet": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "digitalocean": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "directus": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "discord": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "discover": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "django": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "docker": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "doordash": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "dotnet": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "dribbble": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "drift": {
+    "viewBox": [
+      512,
+      117
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#111"
+    ]
+  },
+  "drone": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "dropbox": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "drupal": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "duckdb": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "duckduckgo": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "duolingo": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ea": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ebay": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ecosia": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "egnyte": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "elastic": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "element": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "elevenlabs": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "elixir": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "elm": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "enpass": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ente": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "epicgames": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ericsson": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "erlang": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "esbuild": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "eslint": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "etsy": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "evernote": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "excalidraw": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "expensify": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "express": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "expressvpn": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "facebook": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "fastapi": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "fastly": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "fathom": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "fauna": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "figma": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "firebase": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "firefox": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "fireworks-ai": {
+    "viewBox": [
+      256,
+      127
+    ],
+    "aspect": "wide",
+    "paths": 1,
+    "colors": [
+      "#6720ff"
+    ]
+  },
+  "fitbit": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "flask": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "flipkart": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "flutter": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "flydotio": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "fortinet": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "framer": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "fsecure": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "fusionauth": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "gandi": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "garmin": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ghost": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "git": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "gitea": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "github": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "githubactions": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "gitlab": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "gmail": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "go": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "godaddy": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "google-workspace": {
+    "viewBox": [
+      512,
+      66
+    ],
+    "aspect": "wordmark",
+    "paths": 7,
+    "colors": [
+      "#34a853",
+      "#4285f4",
+      "#5f6368",
+      "#ea4335",
+      "#fbbc04"
+    ]
+  },
+  "google": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "googleanalytics": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "googleauthenticator": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "googlebigquery": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "googlecalendar": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "googlechrome": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "googlecloud": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "googledrive": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "googlegemini": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "googlemeet": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "gotomeeting": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "gradle": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "grafana": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "grammarly": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "graphql": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "groq": {
+    "viewBox": [
+      512,
+      146
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#f43e01"
+    ]
+  },
+  "grove": {
+    "viewBox": [
+      256,
+      267
+    ],
+    "aspect": "square",
+    "paths": 4,
+    "colors": [
+      "#4b843d",
+      "#92c83e",
+      "#fff"
+    ]
+  },
+  "growth-book": {
+    "viewBox": [
+      512,
+      80
+    ],
+    "aspect": "wordmark",
+    "paths": 4,
+    "colors": [
+      "#0047bd",
+      "#029dd1",
+      "#4817a1"
+    ]
+  },
+  "grubhub": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "gumroad": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "hashicorp": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "hashnode": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "haskell": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "hasura": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "headlessui": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "headspace": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "heap": {
+    "viewBox": [
+      512,
+      198
+    ],
+    "aspect": "wordmark",
+    "paths": 3,
+    "colors": [
+      "#31d891"
+    ]
+  },
+  "helpscout": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "heroku": {
+    "viewBox": [
+      512,
+      144
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#430098"
+    ]
+  },
+  "hetzner": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "hoppscotch": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "hotjar": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "hsbc": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "htmx": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "huawei": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "hubspot": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "huggingface": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ibm": {
+    "viewBox": [
+      512,
+      205
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": []
+  },
+  "icloud": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "influxdb": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "insomnia": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "instacart": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "instagram": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "instapaper": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "intel": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "intercom": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "invision": {
+    "viewBox": [
+      512,
+      175
+    ],
+    "aspect": "wordmark",
+    "paths": 2,
+    "colors": [
+      "#f06",
+      "#fff"
+    ]
+  },
+  "java": {
+    "viewBox": [
+      256,
+      346
+    ],
+    "aspect": "square",
+    "paths": 5,
+    "colors": [
+      "#5382a1",
+      "#e76f00"
+    ]
+  },
+  "javascript": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "jenkins": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "jest": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "jetbrains": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "jina": {
+    "viewBox": [
+      512,
+      218
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#009191",
+      "#eb6161",
+      "#fbcb67"
+    ]
+  },
+  "jira": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "joomla": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "jsfiddle": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "julia": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "justeat": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "kakaotalk": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "kaspersky": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "keeper": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "keybase": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "keycloak": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "klarna": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "komoot": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "konami": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "kotlin": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "kraken": {
+    "viewBox": [
+      256,
+      229
+    ],
+    "aspect": "square",
+    "paths": 9,
+    "colors": []
+  },
+  "kubernetes": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "langchain": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "laravel": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "lastpass": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "launchdarkly": {
+    "viewBox": [
+      512,
+      80
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": []
+  },
+  "lemonsqueezy": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "lg": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "linear": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "linkedin": {
+    "viewBox": [
+      512,
+      128
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#0a66c2"
+    ]
+  },
+  "linode": {
+    "viewBox": [
+      256,
+      307
+    ],
+    "aspect": "square",
+    "paths": 3,
+    "colors": [
+      "#004711",
+      "#00b159"
+    ]
+  },
+  "livechat": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "livekit": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "logseq": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "looker": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "loom": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "lua": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "lucid": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "lyft": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "magento": {
+    "viewBox": [
+      256,
+      256
+    ],
+    "aspect": "square",
+    "paths": 2,
+    "colors": [
+      "#27140d",
+      "#f26724",
+      "#fddfdd"
+    ]
+  },
+  "mailchimp": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mailgun": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mailjet": {
+    "viewBox": [
+      512,
+      127
+    ],
+    "aspect": "wordmark",
+    "paths": 2,
+    "colors": [
+      "#131b20",
+      "#9585f4"
+    ]
+  },
+  "malwarebytes": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mariadb": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mastercard": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mastodon": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "matomo": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "matrix": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mattermost": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "maven": {
+    "viewBox": [
+      512,
+      139
+    ],
+    "aspect": "wordmark",
+    "paths": 17,
+    "colors": [
+      "#000"
+    ]
+  },
+  "mcafee": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "medium": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "medusa": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mega": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "meilisearch": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "messenger": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "meta": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "metabase": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "metamask": {
+    "viewBox": [
+      512,
+      96
+    ],
+    "aspect": "wordmark",
+    "paths": 13,
+    "colors": [
+      "#161616",
+      "#233447",
+      "#763e1a",
+      "#c0ac9d",
+      "#cc6228",
+      "#d5bfb2",
+      "#e17726",
+      "#e27525",
+      "#e27625",
+      "#f5841f"
+    ]
+  },
+  "microsoft-onedrive": {
+    "viewBox": [
+      256,
+      165
+    ],
+    "aspect": "wide",
+    "paths": 4,
+    "colors": [
+      "#0078d4",
+      "#0364b8",
+      "#1490df",
+      "#28a8ea"
+    ]
+  },
+  "microsoft": {
+    "viewBox": [
+      512,
+      110
+    ],
+    "aspect": "wordmark",
+    "paths": 5,
+    "colors": [
+      "#00adef",
+      "#706d6e",
+      "#80cc28",
+      "#f1511b",
+      "#fbbc09"
+    ]
+  },
+  "microsoftazure": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "microsoftteams": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "midjourney": {
+    "viewBox": [
+      256,
+      214
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": [
+      "#1a222d"
+    ]
+  },
+  "milvus": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "minecraft": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "miro": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mistralai": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mixpanel": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mocha": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "modal": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "monday": {
+    "viewBox": [
+      512,
+      95
+    ],
+    "aspect": "wordmark",
+    "paths": 3,
+    "colors": [
+      "#00ca72",
+      "#333",
+      "#f62b54",
+      "#fc0"
+    ]
+  },
+  "mongodb": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "monzo": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "motorola": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mozilla": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mparticle": {
+    "viewBox": [
+      512,
+      108
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": []
+  },
+  "mui": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mullvad": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mural": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "mysql": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "n26": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "n8n": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "namecheap": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "neo4j": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "neon": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "neovim": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "nestjs": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "netflix": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "netlify": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "newrelic": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "nextdotjs": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "nintendo": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "nodedotjs": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "nokia": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "nomad": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "nordvpn": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "norton": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "notion": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "npm": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "nuxt": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "nvidia": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "obsidian": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ocaml": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "okta": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "olark": {
+    "viewBox": [
+      512,
+      323
+    ],
+    "aspect": "wide",
+    "paths": 1,
+    "colors": []
+  },
+  "ollama": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "oneplus": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "onesignal": {
+    "viewBox": [
+      256,
+      236
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": [
+      "#e44a49"
+    ]
+  },
+  "openai": {
+    "viewBox": [
+      512,
+      126
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": []
+  },
+  "openrouter": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "opensea": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "opensearch": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "openvpn": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "opera": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "oppo": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "opsgenie": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "optimizely": {
+    "viewBox": [
+      512,
+      119
+    ],
+    "aspect": "wordmark",
+    "paths": 6,
+    "colors": [
+      "#0037ff",
+      "#0cf",
+      "#3be081",
+      "#861dff",
+      "#ff8110"
+    ]
+  },
+  "oracle": {
+    "viewBox": [
+      512,
+      67
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#ea1b22"
+    ]
+  },
+  "ory": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ovh": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "packer": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "paddle": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "pagerduty": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "paloaltonetworks": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "patreon": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "payloadcms": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "paypal": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "peloton": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "percy": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "perl": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "perplexity": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "phoenixframework": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "php": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "pinecone": {
+    "viewBox": [
+      512,
+      104
+    ],
+    "aspect": "wordmark",
+    "paths": 2,
+    "colors": [
+      "#201d1e"
+    ]
+  },
+  "pinterest": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "pipedrive": {
+    "viewBox": [
+      512,
+      117
+    ],
+    "aspect": "wordmark",
+    "paths": 7,
+    "colors": [
+      "#231f1f",
+      "#3b3b3c",
+      "#525254"
+    ]
+  },
+  "planetscale": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "playstation": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "playwright": {
+    "viewBox": [
+      256,
+      192
+    ],
+    "aspect": "wide",
+    "paths": 7,
+    "colors": [
+      "#1d8d22",
+      "#2d4552",
+      "#2ead33",
+      "#c04b41",
+      "#d65348",
+      "#e2574c"
+    ]
+  },
+  "pnpm": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "pocket": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "pocketbase": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "porkbun": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "postgresql": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "posthog": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "postman": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "powerbi": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "preact": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "prefect": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "prettier": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "prisma": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "producthunt": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "prometheus": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "proton": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "protonmail": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "protonvpn": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "pulumi": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "puppeteer": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "pusher": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "python": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "qdrant": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "qualcomm": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "qualys": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "quickbooks": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "qwant": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "rackspace": {
+    "viewBox": [
+      512,
+      106
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": []
+  },
+  "radixui": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "railway": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "rakuten": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "razorpay": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "react": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "redash": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "reddit": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "redis": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "remix": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "render": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "renovate": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "replicate": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "replit": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "resend": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "retool": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "revolut": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "riotgames": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ripple": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "roamresearch": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "robinhood": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "roblox": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "rockstargames": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "rollup": {
+    "viewBox": [
+      128,
+      128
+    ],
+    "aspect": "square",
+    "paths": 6,
+    "colors": []
+  },
+  "ruby": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "rubyonrails": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "rudderstack": {
+    "viewBox": [
+      512,
+      84
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": []
+  },
+  "rust": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "safari": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "salesforce": {
+    "viewBox": [
+      256,
+      180
+    ],
+    "aspect": "wide",
+    "paths": 3,
+    "colors": [
+      "#00a1e0",
+      "#fff"
+    ]
+  },
+  "samsung": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "sanity": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "saucelabs": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "scala": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "scaleway": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "scylladb": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "sega": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "segment": {
+    "viewBox": [
+      512,
+      105
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#4fb58b"
+    ]
+  },
+  "selenium": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "sendgrid": {
+    "viewBox": [
+      512,
+      90
+    ],
+    "aspect": "wordmark",
+    "paths": 6,
+    "colors": [
+      "#00a9d1",
+      "#212f38",
+      "#2191c4",
+      "#3f72ab",
+      "#9dd6e3"
+    ]
+  },
+  "sentry": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "shadcnui": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "shopee": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "shopify": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "siemens": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "signal": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "simpleanalytics": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "singlestore": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "sketch": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "slack": {
+    "viewBox": [
+      512,
+      130
+    ],
+    "aspect": "wordmark",
+    "paths": 5,
+    "colors": [
+      "#2eb67d",
+      "#36c5f0",
+      "#e01e5a",
+      "#ecb22e"
+    ]
+  },
+  "snapchat": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "snowflake": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "snyk": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "sonarqube": {
+    "viewBox": [
+      512,
+      125
+    ],
+    "aspect": "wordmark",
+    "paths": 2,
+    "colors": [
+      "#070707",
+      "#499cd2"
+    ]
+  },
+  "sony": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "soundcloud": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "sourcegraph": {
+    "viewBox": [
+      256,
+      262
+    ],
+    "aspect": "square",
+    "paths": 3,
+    "colors": [
+      "#00b4f2",
+      "#b200f8",
+      "#f96316"
+    ]
+  },
+  "sparkpost": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "splunk": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "spotify": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "spring": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "sqlite": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "square": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "squareenix": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "squarespace": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "stability-ai": {
+    "viewBox": [
+      512,
+      100
+    ],
+    "aspect": "wordmark",
+    "paths": 3,
+    "colors": [
+      "#e80000"
+    ]
+  },
+  "stackblitz": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "stackoverflow": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "starlingbank": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "startpage": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "statuspage": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "steam": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "stitch": {
+    "viewBox": [
+      256,
+      256
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": [
+      "#ffc600"
+    ]
+  },
+  "storyblok": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "storybook": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "strapi": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "strava": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "stripe": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "stytch": {
+    "viewBox": [
+      512,
+      163
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#1d1d1d"
+    ]
+  },
+  "substack": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "sumologic": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "suno": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "supabase": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "supertokens": {
+    "viewBox": [
+      512,
+      78
+    ],
+    "aspect": "wordmark",
+    "paths": 4,
+    "colors": [
+      "#292e37",
+      "#db902e",
+      "#f93"
+    ]
+  },
+  "surfshark": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "svelte": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "swagger": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "swift": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "tableau": {
+    "viewBox": [
+      512,
+      109
+    ],
+    "aspect": "wordmark",
+    "paths": 10,
+    "colors": [
+      "#1f447e",
+      "#59879b",
+      "#5b6591",
+      "#7099a6",
+      "#c72035",
+      "#e8762c",
+      "#eb912c"
+    ]
+  },
+  "tailscale": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "tailwindcss": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "tauri": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "tealium": {
+    "viewBox": [
+      512,
+      126
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#68d8d5"
+    ]
+  },
+  "telegram": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "teleport": {
+    "viewBox": [
+      128,
+      128
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": [
+      "#512fc9"
+    ]
+  },
+  "telnyx": {
+    "viewBox": [
+      512,
+      160
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": []
+  },
+  "terraform": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "tesla": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "threads": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "threema": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ticktick": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "tiktok": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "timescale": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "todoist": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "togetherai": {
+    "viewBox": [
+      512,
+      109
+    ],
+    "aspect": "wordmark",
+    "paths": 5,
+    "colors": [
+      "#caaef5",
+      "#ef2cc1",
+      "#fc4c02"
+    ]
+  },
+  "torproject": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "travisci": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "trello": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "trendmicro": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "tresorit": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "trezor": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "tripadvisor": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "trustpilot": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "tumblr": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "turso": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "tutanota": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "twilio": {
+    "viewBox": [
+      512,
+      155
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#f12e45"
+    ]
+  },
+  "twitch": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "typescript": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "typesense": {
+    "viewBox": [
+      512,
+      114
+    ],
+    "aspect": "wordmark",
+    "paths": 1,
+    "colors": [
+      "#1035bc"
+    ]
+  },
+  "uber": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ubereats": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ubisoft": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "ublockorigin": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "umami": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "unionpay": {
+    "viewBox": [
+      256,
+      160
+    ],
+    "aspect": "wide",
+    "paths": 4,
+    "colors": [
+      "#00447c",
+      "#007b84",
+      "#e21836",
+      "#fefefe"
+    ]
+  },
+  "upcloud": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "valve": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "vault": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "veed": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "venmo": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "vercel": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "viber": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "vim": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "visa": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "vite": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "vitest": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "vivaldi": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "vivo": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "vllm": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "vonage": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "vuedotjs": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "vultr": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "walletconnect": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "wasabi": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "weaviate": {
+    "viewBox": [
+      512,
+      76
+    ],
+    "aspect": "wordmark",
+    "paths": 10,
+    "colors": [
+      "#120c46"
+    ]
+  },
+  "webex": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "webflow": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "webpack": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "wechat": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "weightsandbiases": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "wellsfargo": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "whatsapp": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "wireguard": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "wise": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "wish": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "wix": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "woocommerce": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "wordpress": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "workos": {
+    "viewBox": [
+      512,
+      98
+    ],
+    "aspect": "wordmark",
+    "paths": 2,
+    "colors": [
+      "#29363d",
+      "#6363f1"
+    ]
+  },
+  "x": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "xai": {
+    "viewBox": [
+      128,
+      128
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "xata": {
+    "viewBox": [
+      512,
+      158
+    ],
+    "aspect": "wordmark",
+    "paths": 5,
+    "colors": [
+      "#0076ff",
+      "#06d6a0",
+      "#ff0075",
+      "#ffbe0b"
+    ]
+  },
+  "xbox": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "xero": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "xiaomi": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "yarn": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "youtube": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "yubico": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "zapier": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "zelle": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "zendesk": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "zeplin": {
+    "viewBox": [
+      256,
+      205
+    ],
+    "aspect": "square",
+    "paths": 8,
+    "colors": [
+      "#ee6723",
+      "#f69833",
+      "#fdbd39",
+      "#fecf33"
+    ]
+  },
+  "zig": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "zoho": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "zoom": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "zotero": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  },
+  "zulip": {
+    "viewBox": [
+      24,
+      24
+    ],
+    "aspect": "square",
+    "paths": 1,
+    "colors": []
+  }
+}

@@ -17,6 +17,7 @@ import { fileURLToPath } from "node:url";
 import { icon } from "../src/web/icons.js";
 import { onGround, relief } from "./mark.mjs";
 import { wordmark, outline } from "./wordmark.mjs";
+import BRAND_INDEX from "../src/web/brands.index.json" with { type: "json" };
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "docs/screens");
@@ -121,13 +122,20 @@ function glyph(name, x, y, size, fill, opacity = 1) {
   return `<g transform="translate(${x} ${y}) scale(${size / 24})" fill="${fill}" opacity="${opacity}">${inner}</g>`;
 }
 
-/** Read a vendored brand's viewBox without emitting anything. */
-function viewBoxOf(slug) {
-  return (/viewBox="([^"]+)"/.exec(readFileSync(join(ROOT, "src/web/brands", `${slug}.svg`), "utf8")) ?? [])[1] ?? "0 0 24 24";
+/**
+ * How wide a slot this mark needs, from the generated index rather than from a
+ * guess. 61 of the 586 vendored marks are not square, and drawing a 512x66
+ * wordmark into a 30px box turns it into a smear.
+ */
+function slotFor(slug) {
+  const aspect = BRAND_INDEX[slug]?.aspect ?? "square";
+  if (aspect === "wordmark") return 2.4;
+  if (aspect === "wide") return 1.45;
+  return 1;
 }
 
 /** The brand column: a rounded container with an inlined company mark. */
-function brandTile(slug, t, x, y, size = 30, { selected = false, wide = false } = {}) {
+function brandTile(slug, t, x, y, size = 30, { selected = false, wide = false, slot = 1 } = {}) {
   const path = join(ROOT, "src/web/brands", `${slug}.svg`);
   if (!existsSync(path)) throw new Error(`no brand ${slug}`);
   const raw = readFileSync(path, "utf8");
@@ -136,7 +144,8 @@ function brandTile(slug, t, x, y, size = 30, { selected = false, wide = false } 
   // the glyph. Only the outer <svg> is dropped.
   const viewBox = (/viewBox="([^"]+)"/.exec(raw) ?? [])[1] ?? "0 0 24 24";
   const body = raw.slice(raw.indexOf(">") + 1, raw.lastIndexOf("</svg>"));
-  const box = rect(x, y, wide ? size * 1.45 : size, size, t, {
+  const w = size * (slot > 1 ? slot : 1);
+  const box = rect(x, y, w, size, t, {
     fill: selected ? t["--panel"] : t["--panel-2"],
     kind: selected ? "pressed" : "flat",
     r: dir(t) === "foundry" ? 0 : 8,
@@ -145,7 +154,6 @@ function brandTile(slug, t, x, y, size = 30, { selected = false, wide = false } 
   const [vbx, vby, vbw, vbh] = viewBox.split(/\s+/).map(Number);
   // Fit the mark inside the tile without distorting it: a wordmark like Groq's is
   // 512x146, so it is scaled to the width and centred vertically.
-  const w = wide ? size * 1.45 : size;
   const k = Math.min((w - pad * 2) / vbw, (size - pad * 2) / vbh);
   const tx = x + (w - vbw * k) / 2 - vbx * k;
   const ty = y + (size - vbh * k) / 2 - vby * k;
@@ -292,8 +300,10 @@ function dashboard(t, { width = 1280, height = 820, selected = 0, lightMode = fa
     } else if (foundry) {
       d.push(`<line x1="${listX}" y1="${ry + h}" x2="${listX + listW}" y2="${ry + h}" stroke="${t["--line-2"]}"/>`);
     }
-    const wide = viewBoxOf(slug) !== "0 0 24 24";
-    d.push(brandTile(slug, t, listX + 14, ry + 13, 30, { selected: on, wide }));
+    // The index decides the slot. A wordmark gets a wider box and is scaled to
+    // fit inside it, which is what stops the distortion.
+    const slot = slotFor(slug);
+    d.push(brandTile(slug, t, listX + 14, ry + 13, 30, { selected: on, wide: slot > 1, slot }));
     d.push(label(t, listX + 58, ry + 25, name, { size: 13.5, weight: on ? 600 : 500 }));
     d.push(label(t, listX + 58, ry + 41, host, { size: 11.5, role: "mut", mono: true }));
 

@@ -16,7 +16,8 @@
     "test:core": "node --experimental-strip-types --test test/core.test.mjs test/totp.test.mjs test/parse.test.mjs test/theme.test.mjs",
     "test:e2e": "node --experimental-strip-types --test --test-force-exit test/api.test.mjs test/ui.test.mjs",
     "icons": "node tools/icons.mjs",
-    "render": "node tools/render.mjs"
+    "render": "node tools/render.mjs",
+    "brands:index": "node tools/brandindex.mjs"
   },
   "license": "UNLICENSED",
   "devDependencies": {
