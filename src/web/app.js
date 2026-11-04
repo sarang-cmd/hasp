@@ -15,6 +15,9 @@ import { buildTour } from "./tour.js";
 
 const state = {
   view: "vault", // vault | import | activity | devices | settings
+  // What /api/sync/status last said. Null means "not asked yet", which is different
+  // from "not paired", and the panel says which.
+  sync: null,
   selectedId: null,
   query: "",
   type: "all",
@@ -443,6 +446,62 @@ function renderDevices() {
   };
 }
 
+/**
+ * The sync panel body.
+ *
+ * Four states, and the copy differs in each, because "sync is off" and "sync has
+ * never been asked about" are different things and a single "not connected" line
+ * would blur them.
+ */
+function renderSyncBody() {
+  const body = $("[data-sync-body]");
+  if (!body) return;
+  const s = state.sync;
+  if (!s) {
+    body.innerHTML = `<p class="hint">Checking…</p>`;
+    return;
+  }
+  if (!s.paired) {
+    body.innerHTML = `
+      <div class="fieldgrid">
+        <div><span class="flabel">State</span><span class="fvalue">Off</span></div>
+        <div><span class="flabel">Stored on the other side</span><span class="fvalue">${s.held ?? 0} records</span></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:12px">
+        <button class="btn" type="button" data-sync-start>Turn sync on</button>
+      </div>`;
+    return;
+  }
+  const shown = state.syncToken;
+  body.innerHTML = `
+    <div class="fieldgrid">
+      <div><span class="flabel">State</span><span class="fvalue">On</span></div>
+      <div><span class="flabel">Where</span><span class="fvalue">${esc(s.url || "this machine")}</span></div>
+      <div><span class="flabel">Stored on the other side</span><span class="fvalue">${s.held ?? 0} records</span></div>
+      <div><span class="flabel">Vault sequence</span><span class="fvalue">${s.seq ?? 0}</span></div>
+    </div>
+    ${shown ? `<div class="error" style="margin-top:12px;color:var(--warn);border-color:var(--warn)" data-sync-token>
+      <div><strong>Write token, shown once.</strong> Copy it now. Only a hash is kept, so it
+        cannot be shown again, only rotated.</div>
+      <code style="display:block;margin-top:8px;word-break:break-all">${esc(shown)}</code>
+    </div>` : ""}
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">
+      <button class="btn" type="button" data-sync-round>Sync now</button>
+      <button class="btn btn--quiet" type="button" data-sync-rotate>Rotate token</button>
+      <button class="btn btn--quiet" type="button" data-sync-off>Turn sync off</button>
+    </div>`;
+}
+
+/** Read the current pairing. Called after paint, like the devices panel. */
+async function loadSync() {
+  try {
+    state.sync = await api("/api/sync/status");
+  } catch {
+    state.sync = { paired: false, held: 0, unknown: true };
+  }
+  renderSyncBody();
+}
+
 function renderSettings() {
   const { dir, mode, accent } = currentAppearance();
   return {
@@ -498,6 +557,18 @@ function renderSettings() {
         </div>
       </div>
       <div class="panel">
+        <h2>Sync</h2>
+        <p>Off by default. When it is on, your own machines exchange the records the
+          vault already stores encrypted. The store cannot read them, and it keeps
+          no plaintext.</p>
+        <div data-sync-body style="margin-top:12px">
+          <p class="hint">Checking…</p>
+        </div>
+        <p class="hint" style="margin-top:12px">A store token is a write credential. Anyone
+          holding it can write junk into the store, though not read a secret. Rotating it
+          cuts off the old device.</p>
+      </div>
+      <div class="panel">
         <h2>Export</h2>
         <p>Download a JSON copy of the decrypted vault. Store it somewhere you trust, or delete it immediately.</p>
         <div style="display:flex;gap:8px;margin-top:12px">
@@ -524,7 +595,7 @@ function render() {
     state.view === "import" ? renderImport()
     : state.view === "activity" ? renderActivity()
     : state.view === "devices" ? renderDevices()  // loadDevices() runs after paint, below
-    : state.view === "settings" ? renderSettings()
+    : state.view === "settings" ? renderSettings()  // loadSync() runs after paint too
     : renderVault();
 
   const count = state.items.length;
@@ -541,7 +612,7 @@ function render() {
           ).join("")}
         </div>
         <div class="rail-foot">
-          <div class="rail-sync"><i class="dot"></i><span>Synced locally</span></div>
+          <div class="rail-sync"><i class="dot${state.sync?.paired ? " is-live" : ""}"></i><span>${state.sync?.paired ? "Sync on" : "On this machine"}</span></div>
           <div class="rail-user">
             <span class="avatar">SR</span>
             <span><b>sarang@studio.dev</b><em>Sample vault</em></span>
@@ -570,6 +641,7 @@ function render() {
   // The device list is fetched after the shell is in the document, so a slow or
   // refused request cannot stop the page from painting.
   if (state.view === "devices") loadDevices();
+  if (state.view === "settings") loadSync();
 }
 
 /* ---------------------------------------------------------------- toast */
@@ -943,6 +1015,73 @@ document.addEventListener("click", async (e) => {
     const { dir, mode } = currentAppearance();
     choose(store, { dir, mode, accent: accentSwitch.dataset.accentSwitch });
     return applyAppearance({ dir, mode, accent: accentSwitch.dataset.accentSwitch });
+  }
+
+  /* ---- sync */
+
+  if (t.closest("[data-sync-start]")) {
+    try {
+      const started = await api("/api/sync/start", { method: "POST" });
+      // The token is shown once here because the store keeps only a hash. It is held
+      // in memory and never written to storage, so a reload hides it for good.
+      state.syncToken = started.token;
+      state.sync = await api("/api/sync/status");
+      renderSyncBody();
+      toast("Sync is on. Copy the write token.");
+    } catch (err) {
+      toast(err.message);
+    }
+    return;
+  }
+
+  if (t.closest("[data-sync-rotate]")) {
+    // Forgetting the pairing then starting again mints a new token. The old one is
+    // dead the moment the store replaces its hash.
+    try {
+      await api("/api/sync/pairing", { method: "DELETE" });
+      const started = await api("/api/sync/start", { method: "POST" });
+      state.syncToken = started.token;
+      state.sync = await api("/api/sync/status");
+      renderSyncBody();
+      toast("New token. The old one no longer works.");
+    } catch (err) {
+      toast(err.message);
+    }
+    return;
+  }
+
+  if (t.closest("[data-sync-off]")) {
+    try {
+      await api("/api/sync/pairing", { method: "DELETE" });
+      state.syncToken = null;
+      state.sync = await api("/api/sync/status");
+      renderSyncBody();
+      toast("Sync is off. The stored copy is still on the other side.");
+    } catch (err) {
+      toast(err.message);
+    }
+    return;
+  }
+
+  if (t.closest("[data-sync-round]")) {
+    try {
+      const round = await api("/api/sync/round", { method: "POST", body: JSON.stringify({ since: 0 }) });
+      state.sync = await api("/api/sync/status");
+      renderSyncBody();
+      if (round.conflicts.length) {
+        toast(`${round.conflicts.length} item changed on both machines. Nothing was overwritten.`);
+      } else if (!round.pulled.applied && !round.pushed) {
+        toast("Already up to date.");
+      } else {
+        toast(`${round.pulled.applied} in, ${round.pushed} out.`);
+      }
+      // A round changes rows, so the list behind the panel is stale.
+      await load();
+      if (state.view === "settings") render();
+    } catch (err) {
+      toast(err.message);
+    }
+    return;
   }
 
   if (t.closest("[data-tour-start]")) return startTour();
