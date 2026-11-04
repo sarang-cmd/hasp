@@ -1,0 +1,137 @@
+/* One column, thumb sized targets, no hover states, because there is no pointer.
+   Sizes are in rem so the system text size setting is respected. */
+
+:root {
+  --paper: #f6f5f1;
+  --panel: #ffffff;
+  --ink: #16181c;
+  --ink-2: #3d434d;
+  --mut: #666d78;
+  --rule: #d9d7cf;
+  --accent: #a8402a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14161a;
+    --panel: #1c1f24;
+    --ink: #f2f4f7;
+    --ink-2: #c2c8d0;
+    --mut: #8d97a4;
+    --rule: #2c3138;
+    --accent: #e0683a;
+  }
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+#app { min-height: 100%; display: flex; flex-direction: column; }
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--rule);
+}
+
+header h1 { font-size: 1.05rem; font-weight: 650; letter-spacing: -0.01em; margin: 0; }
+header .state { margin-left: auto; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mut); }
+
+main { flex: 1; padding: 14px 18px 28px; }
+
+.setup { display: grid; gap: 14px; margin-top: 8px; }
+.setup h2 { font-size: 1.3rem; letter-spacing: -0.02em; margin: 6px 0 0; }
+.setup p { margin: 0; color: var(--ink-2); }
+
+label { display: grid; gap: 6px; font-size: 0.82rem; color: var(--mut); }
+
+input {
+  width: 100%;
+  padding: 13px 14px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  font-size: 1rem;
+}
+
+input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+input.code {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+button {
+  width: 100%;
+  padding: 15px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 600;
+  min-height: 52px;
+}
+
+button:disabled { opacity: 0.55; }
+button.quiet { background: transparent; border-color: var(--rule); color: var(--ink); font-weight: 500; }
+
+.note { font-size: 0.85rem; color: var(--mut); margin: 0; }
+.warn { border-left: 3px solid var(--accent); padding-left: 10px; color: var(--ink-2); font-size: 0.88rem; }
+.error { color: var(--accent); font-size: 0.9rem; margin: 0; }
+
+.codes { display: grid; gap: 10px; }
+
+.code {
+  display: grid;
+  gap: 2px;
+  padding: 16px 18px;
+  border: 1px solid var(--rule);
+  border-radius: 14px;
+  background: var(--panel);
+  text-align: left;
+  color: var(--ink);
+  min-height: 0;
+}
+
+.code:active { border-color: var(--accent); }
+.code .who { font-size: 0.92rem; font-weight: 550; }
+
+.code .digits {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 1.9rem;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+}
+
+.code .bar { height: 3px; border-radius: 2px; background: var(--rule); overflow: hidden; margin-top: 8px; }
+.code .bar i { display: block; height: 100%; background: var(--accent); transition: width 1s linear; }
+
+.empty { text-align: center; padding: 40px 12px; display: grid; gap: 6px; color: var(--mut); }
+.empty strong { color: var(--ink-2); }
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  background: var(--ink);
+  color: var(--paper);
+  padding: 10px 16px;
+  border-radius: 999px;
+  font-size: 0.86rem;
+}
