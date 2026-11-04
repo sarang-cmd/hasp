@@ -484,18 +484,41 @@ function toast(message) {
 
 /* ---------------------------------------------------------------- clipboard */
 
+// The pending clipboard clear. Kept module-level so locking the vault can cancel
+// it: a timer that fires after the session ends is a timer holding a secret in a
+// closure for no reason, and clearing the clipboard of a *locked* vault would erase
+// whatever the reader copied since, since this code cannot verify what is on the
+// clipboard without permission.
+let clipboardTimer = null;
+let clipboardValue = null;
+
+/** Cancel any pending clear. Called on lock and on unload. */
+export function cancelClipboardClear() {
+  if (clipboardTimer) clearTimeout(clipboardTimer);
+  clipboardTimer = null;
+  clipboardValue = null;
+}
+
 async function copyText(text, note) {
   try {
     await navigator.clipboard.writeText(text);
     toast(note || "Copied. Clipboard clears in 30 seconds.");
-    // Best effort: clear it, as the plan asks.
-    setTimeout(async () => {
+    // Best effort: clear it, as the plan asks. Only the most recent copy is
+    // tracked, so copying twice does not leave the first timer running against
+    // a value it can no longer check.
+    cancelClipboardClear();
+    clipboardValue = text;
+    clipboardTimer = setTimeout(async () => {
+      clipboardTimer = null;
       try {
+        // Read back before clearing: if the reader has copied something else
+        // since, leave it alone.
         const now = await navigator.clipboard.readText();
-        if (now === text) await navigator.clipboard.writeText("");
+        if (now === clipboardValue) await navigator.clipboard.writeText("");
       } catch {
         // Reading the clipboard needs permission; failing is fine.
       }
+      clipboardValue = null;
     }, 30000);
     return true;
   } catch {
@@ -798,6 +821,7 @@ document.addEventListener("click", async (e) => {
   if (t.closest("[data-export]")) return exportVault();
 
   if (t.closest("[data-lock]")) {
+    cancelClipboardClear();
     await api("/api/lock", { method: "POST" });
     return location.reload();
   }

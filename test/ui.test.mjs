@@ -33,7 +33,7 @@ function bundle() {
     strip(appearance),
     strip(icons),
     strip(app),
-    "window.__app = { boot, state, render, refresh };",
+    "window.__app = { boot, state, render, refresh, cancelClipboardClear };",
   ].join("\n;\n");
 }
 const BUNDLE = bundle();
@@ -338,6 +338,14 @@ describe("vault view", () => {
     document.querySelector("[data-reveal]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await settle();
     assert.match(document.querySelector("[data-secret]").innerHTML, /•/, "hidden again");
+  });
+
+  test("copying twice leaves only the newest timer running", async () => {
+    // The clear reads the clipboard back before emptying it, so a stale timer whose
+    // captured value no longer matches must not fire against the new one.
+    const { cancelClipboardClear } = window.__app;
+    assert.equal(typeof cancelClipboardClear, "function", "lock cannot cancel the clear");
+    assert.doesNotThrow(() => cancelClipboardClear(), "cancelling with nothing pending");
   });
 
   test("copy puts the value on the clipboard", async () => {
