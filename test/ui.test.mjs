@@ -340,6 +340,27 @@ describe("vault view", () => {
     assert.match(document.querySelector("[data-secret]").innerHTML, /•/, "hidden again");
   });
 
+  test("the editor returns focus to whatever opened it", async () => {
+    // A dialog that drops the keyboard user at the top of the document is a
+    // regression you only notice by tabbing.
+    const app = document.querySelector("#app");
+    const trigger = document.createElement("button");
+    trigger.textContent = "Add item";
+    app.appendChild(trigger);
+    trigger.focus();
+    assert.equal(document.activeElement, trigger, "precondition: the trigger has focus");
+
+    const add = document.querySelector("[data-add]");
+    assert.ok(add, "the vault should offer Add");
+    add.click();
+    await until(() => document.querySelector(".modal"), "the editor opened");
+    assert.equal(document.querySelector("body").classList.contains("is-modal-open"), true, "the page must not scroll behind the dialog");
+
+    document.querySelector(".modal [data-close]").click();
+    await until(() => !document.querySelector(".modal"), "the editor closed");
+    assert.equal(document.querySelector("body").classList.contains("is-modal-open"), false, "the scroll lock must be released");
+  });
+
   test("a throttled gate counts down and then reopens", async () => {
     // The server answers 429 with Retry-After; the gate must turn that into a
     // countdown rather than leaving a button that is certain to fail.

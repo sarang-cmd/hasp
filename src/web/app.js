@@ -684,14 +684,30 @@ function openEditor(item) {
     </div>`;
   document.body.appendChild(wrap);
   const form = $("form", wrap);
+  // Remember what opened the dialog so focus can go back to it. Without this a
+  // keyboard user is dropped at the top of the document when the dialog closes,
+  // which is disorienting in a list that may be hundreds of rows long.
+  const opener = document.activeElement;
+  document.body.classList.add("is-modal-open");
   $("input", form).focus();
 
-  const close = () => wrap.remove();
+  let closed = false;
+  const close = () => {
+    if (closed) return;
+    closed = true;
+    wrap.remove();
+    document.body.classList.remove("is-modal-open");
+    // The opener can be gone if the row was deleted while the dialog was open.
+    if (opener && document.contains(opener) && typeof opener.focus === "function") opener.focus();
+  };
   wrap.addEventListener("click", (e) => {
     if (e.target === wrap || e.target.closest("[data-close]")) close();
   });
   wrap.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") close();
+    if (e.key === "Escape") {
+      e.preventDefault();
+      close();
+    }
     if (e.key === "Tab") trapFocus(e, wrap);
   });
 
