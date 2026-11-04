@@ -1,0 +1,206 @@
+/* The popup is 360px because that is the widest Chrome will render without a
+   scrollbar on a small window. One column, no breakpoints. */
+
+:root {
+  --paper: #f6f5f1;
+  --panel: #ffffff;
+  --ink: #16181c;
+  --ink-2: #3d434d;
+  --mut: #666d78;
+  --rule: #d9d7cf;
+  --accent: #a8402a;
+  --mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14161a;
+    --panel: #1c1f24;
+    --ink: #f2f4f7;
+    --ink-2: #c2c8d0;
+    --mut: #8d97a4;
+    --rule: #2c3138;
+    --accent: #e0683a;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  width: 360px;
+  min-height: 240px;
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font: 13px/1.45 var(--sans);
+}
+
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.wordmark { font-weight: 650; letter-spacing: -0.01em; }
+
+.state {
+  margin-left: auto;
+  color: var(--mut);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.icon {
+  border: 1px solid var(--rule);
+  background: var(--panel);
+  color: var(--ink-2);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.icon:hover { border-color: var(--mut); }
+
+main { padding: 10px 12px; min-height: 120px; }
+
+.foot {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  border-top: 1px solid var(--rule);
+  color: var(--mut);
+  font-size: 11px;
+}
+
+.link {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ---- gate ---- */
+
+.gate label { display: block; font-size: 12px; color: var(--ink-2); margin-bottom: 6px; }
+
+.gate input[type="password"] {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+}
+
+.gate input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.primary {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: var(--accent);
+  color: #fff;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primary:disabled { opacity: 0.6; cursor: default; }
+
+/* ---- list ---- */
+
+.search {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--ink);
+  font: inherit;
+  margin-bottom: 8px;
+}
+
+.items { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 6px;
+  border-radius: 6px;
+}
+
+.item:hover, .item:focus-within { background: var(--panel); }
+
+.tile {
+  flex: 0 0 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  background: var(--rule);
+  color: var(--ink-2);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.meta { display: grid; min-width: 0; flex: 1; }
+.meta strong { font-weight: 550; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meta .sub { color: var(--mut); font-size: 11px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.copy {
+  border: 1px solid var(--rule);
+  background: var(--panel);
+  color: var(--ink);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font: 12px/1.4 var(--mono);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.copy:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---- states ---- */
+
+.empty {
+  display: grid;
+  gap: 3px;
+  padding: 22px 6px;
+  text-align: center;
+  color: var(--mut);
+}
+
+.empty strong { color: var(--ink-2); font-weight: 550; }
+.empty span { font-size: 11px; }
+
+.banner {
+  margin: 0 0 8px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  border: 1px solid var(--rule);
+  font-size: 12px;
+}
+
+.banner--error { border-color: var(--accent); color: var(--accent); }
+
+.section { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--mut); margin: 10px 0 4px; }
+
+.section:first-child { margin-top: 0; }
+
+.progress { height: 2px; background: var(--rule); border-radius: 1px; overflow: hidden; margin-top: 2px; }
+.progress i { display: block; height: 100%; background: var(--accent); transition: width 250ms linear; }
