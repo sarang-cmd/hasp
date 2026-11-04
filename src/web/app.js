@@ -52,7 +52,14 @@ async function api(path, options = {}) {
     throw new Error("Session expired");
   }
   const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body.error || `Request failed (${res.status})`);
+  if (!res.ok) {
+    const err = new Error(body.error || `Request failed (${res.status})`);
+    // Carry the status and the server's Retry-After so the caller can tell a
+    // throttle from a plain rejection. A 429 is the only one with a countdown.
+    err.status = res.status;
+    err.retryAfter = Number(res.headers.get("retry-after")) || 0;
+    throw err;
+  }
   // Any successful request counts as activity on the server too, so the warning
   // is rearmed from now rather than left ticking from boot.
   cancelIdleWarning();
@@ -1026,7 +1033,39 @@ async function exportVault() {
  * printed because this is a sample vault: the plan's rule is that a sample
  * build must say so, not that it must hide its own fixtures.
  */
-function renderGate({ samplePassword, error }) {
+/**
+ * Disable the gate form for `seconds`, counting down in the button. Shared by the
+ * render path and by a throttle response, so a reload during a wait still counts
+ * rather than offering a fresh form.
+ */
+export function lockGateUntil(form, seconds) {
+  const btn = $('button[type="submit"]', form);
+  const input = $("input", form);
+  if (!btn || !input) return;
+  let left = Math.ceil(seconds);
+  btn.disabled = true;
+  input.disabled = true;
+  const paint = () => {
+    btn.textContent = `Wait ${left}s`;
+    if (left <= 0) {
+      btn.disabled = false;
+      input.disabled = false;
+      btn.textContent = "Unlock";
+      input.focus();
+      return;
+    }
+    left -= 1;
+    setTimeout(paint, 1000);
+  };
+  paint();
+  return () => {
+    btn.disabled = false;
+    input.disabled = false;
+    btn.textContent = "Unlock";
+  };
+}
+
+function renderGate({ samplePassword, error, wait = 0 }) {
   const app = $("#app");
   app.innerHTML = `<div class="gate">
     <div class="gate-card">
@@ -1039,7 +1078,7 @@ function renderGate({ samplePassword, error }) {
           <input class="input" id="master" name="password" type="password" autocomplete="current-password" value="${esc(samplePassword || "")}" required>
         </div>
         ${error ? `<p class="error">${esc(error)}</p>` : ""}
-        <button class="btn btn--primary" type="submit" style="justify-content:center">${icons.unlock} Unlock</button>
+        <button class="btn btn--primary" type="submit" style="justify-content:center" data-unlock>${icons.unlock} Unlock</button>
       </form>
       ${
         samplePassword
@@ -1063,10 +1102,13 @@ function renderGate({ samplePassword, error }) {
       await api("/api/unlock", { method: "POST", body: JSON.stringify({ password: $("#master").value }) });
       await start();
     } catch (err) {
-      btn.disabled = false;
-      renderGate({ samplePassword, error: err.message });
+      renderGate({ samplePassword, error: err.message, wait: err.retryAfter || 0 });
     }
   });
+
+  // A throttle is a countdown, so show one. Leaving the button live invites a
+  // click that is guaranteed to fail and a second error that says the same thing.
+  if (wait > 0) lockGateUntil(form, wait);
 }
 
 /* ---------------------------------------------------------------- boot */

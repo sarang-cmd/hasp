@@ -33,7 +33,7 @@ function bundle() {
     strip(appearance),
     strip(icons),
     strip(app),
-    "window.__app = { boot, state, render, refresh, cancelClipboardClear, cancelIdleWarning };",
+    "window.__app = { boot, state, render, refresh, cancelClipboardClear, cancelIdleWarning, lockGateUntil };",
   ].join("\n;\n");
 }
 const BUNDLE = bundle();
@@ -338,6 +338,32 @@ describe("vault view", () => {
     document.querySelector("[data-reveal]").dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await settle();
     assert.match(document.querySelector("[data-secret]").innerHTML, /•/, "hidden again");
+  });
+
+  test("a throttled gate counts down and then reopens", async () => {
+    // The server answers 429 with Retry-After; the gate must turn that into a
+    // countdown rather than leaving a button that is certain to fail.
+    const { lockGateUntil } = window.__app;
+    assert.equal(typeof lockGateUntil, "function");
+
+    // Build the gate off-document: replacing document.body would tear down the
+    // running app that the other cases in this file are still driving.
+    const host = document.createElement("div");
+    host.innerHTML = `<form><input id="master" value="x"><button type="submit" data-unlock>Unlock</button></form>`;
+    const form = host.querySelector("form");
+    const btn = form.querySelector("button");
+    const input = form.querySelector("input");
+
+    const stop = lockGateUntil(form, 2);
+    assert.equal(btn.disabled, true, "the button must not be clickable while throttled");
+    assert.equal(input.disabled, true, "the field is disabled too");
+    assert.match(btn.textContent, /Wait \d+s/, "the countdown is visible");
+
+    // Clearing restores the gate rather than leaving it stuck shut.
+    stop();
+    assert.equal(btn.disabled, false);
+    assert.equal(input.disabled, false);
+    assert.equal(btn.textContent, "Unlock");
   });
 
   test("the idle warning can be cancelled without throwing", async () => {
