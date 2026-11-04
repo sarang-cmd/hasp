@@ -206,3 +206,128 @@ describe("contrast helper", () => {
     assert.equal(contrast("rgba(0, 0, 0, 0)", "#ffffff").toFixed(2), "1.00");
   });
 });
+
+// ---------------------------------------------------------------------------
+// Layout cascade.
+//
+// A specificity fight in CSS is invisible to every other test in this suite: the
+// markup is correct, the tokens are correct, and the element still renders wrong.
+// The live app squashed every company wordmark into a 17px square because
+// `:root[data-dir] .tile img` outranked `.tile--wordmark img`, while the generated
+// screenshots looked right because the renderer never applies the stylesheet.
+//
+// These check the specific collision that caused it, and that any future rule
+// targeting `.tile img` under a direction selector excludes the sized variants.
+
+const APP_CSS = readFileSync(new URL("../src/web/app.css", import.meta.url), "utf8");
+
+/** The declaration blocks whose selector matches a predicate. */
+function rules(predicate) {
+  const out = [];
+  const re = /([^{}]+)\{([^}]*)\}/g;
+  let m;
+  while ((m = re.exec(APP_CSS))) {
+    const selector = m[1].replace(/\/\*[\s\S]*?\*\//g, "").trim();
+    if (selector && !selector.startsWith("@") && predicate(selector)) out.push({ selector, body: m[2] });
+  }
+  return out;
+}
+
+describe("tile sizing cascade", () => {
+  test("a direction rule targeting tile images excludes the sized variants", () => {
+    // Any selector that sets an img width inside a tile, scoped to a direction,
+    // must not also match .tile--wide or .tile--wordmark: those exist to give a
+    // wordmark the width it needs.
+    // Note the shape of this predicate: the width check belongs on the rule body,
+    // not the selector. An earlier version had `&& /width:/.test("")` inside the
+    // selector predicate, which is always false, so the test passed while the bug
+    // was still present. Checked by reverting the fix and watching it fail.
+    const risky = rules((sel) => sel.includes("[data-dir=") && sel.includes(".tile") && sel.includes("img")).filter(
+      (r) => /(?:^|;|\s)width\s*:/.test(r.body)
+    );
+
+    for (const rule of risky) {
+      assert.ok(
+        rule.selector.includes(":not(.tile--wide)") || rule.selector.includes(":not(.tile--wordmark)"),
+        `"${rule.selector}" sets an image width inside a direction scope without excluding the wide variants. ` +
+          `It will override .tile--wide/.tile--wordmark, which have lower specificity.`
+      );
+    }
+  });
+
+  test("wordmarks are wider than plain tiles", () => {
+    const plain = rules((s) => s.trim() === ".tile").map((r) => /width:\s*([\d.]+)px/.exec(r.body)?.[1]).find(Boolean);
+    const word = rules((s) => s.trim() === ".tile--wordmark").map((r) => /width:\s*([\d.]+)px/.exec(r.body)?.[1]).find(Boolean);
+    assert.ok(plain, "no base .tile width");
+    assert.ok(word, "no .tile--wordmark width");
+    assert.ok(Number(word) > Number(plain), `wordmark slot (${word}px) must be wider than a tile (${plain}px)`);
+  });
+
+  test("the wordmark image keeps an aspect ratio near 3:1", () => {
+    // The vendored wordmarks are on a 512-wide grid at roughly 66 to 323 tall. A
+    // box far from that shape re-squashes them, which is the bug this guards.
+    const rule = rules((s) => s.trim() === ".tile--wordmark img")[0];
+    assert.ok(rule, "no .tile--wordmark img rule");
+    const w = Number(/width:\s*([\d.]+)px/.exec(rule.body)?.[1]);
+    const h = Number(/height:\s*([\d.]+)px/.exec(rule.body)?.[1]);
+    assert.ok(w / h >= 2.5 && w / h <= 3.5, `wordmark image is ${w}x${h}, ratio ${(w / h).toFixed(2)}`);
+  });
+
+  test("a long brand name cannot push the row apart", () => {
+    // The row is a flex container; without min-width:0 on the text column a long
+    // name prevents ellipsis and forces the row wider than the list.
+    assert.match(APP_CSS, /\.row-main\s*\{[^}]*min-width:\s*0/, ".row-main needs min-width: 0");
+    assert.match(APP_CSS, /\.row-name\s*\{[^}]*text-overflow:\s*ellipsis/, ".row-name needs ellipsis");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Accent styles.
+//
+// The accent is a separate axis from direction and mode: colour keeps the
+// direction's own hue, mono is ink on ink, grey is neutral. Each is measured, so a
+// style cannot be added by picking a pleasant hex and hoping.
+
+/** Read a token block for an accent style and mode. */
+function accentBlock(mode, accent) {
+  const re = new RegExp(`\\[data-mode="${mode}"\\]\\[data-accent="${accent}"\\]\\s*\\{([\\s\\S]*?)\\}`, "m");
+  const m = re.exec(CSS);
+  if (!m) return null;
+  return Object.fromEntries([...m[1].matchAll(/(--[a-z0-9-]+):\s*([^;]+);/g)].map((x) => [x[1], x[2].trim()]));
+}
+
+describe("accent styles", () => {
+  test("every style is declared for both modes", () => {
+    for (const accent of ["mono", "grey"]) {
+      for (const mode of ["light", "dark"]) {
+        assert.ok(accentBlock(mode, accent), `${accent} ${mode} missing`);
+      }
+    }
+  });
+
+  test("accent ink clears AA on the accent fill", () => {
+    // The accent is used as a solid button background with --accent-ink on top, so
+    // this is body text at body size: 4.5:1, not 3:1.
+    for (const accent of ["mono", "grey"]) {
+      for (const mode of ["light", "dark"]) {
+        const b = accentBlock(mode, accent);
+        const ratio = contrast(b["--accent"], b["--accent-ink"]);
+        assert.ok(ratio >= 4.5, `${accent} ${mode}: ${ratio.toFixed(2)}:1 is under 4.5`);
+      }
+    }
+  });
+
+  test("mono is actually mono", () => {
+    // Black on white in light, white on black in dark. If these drift into a tint
+    // the style stops being the colourless option it exists to provide.
+    assert.equal(accentBlock("light", "mono")["--accent"], "#16181c");
+    assert.equal(accentBlock("dark", "mono")["--accent"], "#f2f4f7");
+  });
+
+  test("the default accent is still the direction's own", () => {
+    // No data-accent attribute means colour: the direction block supplies it.
+    const light = block("nightshift", "light");
+    assert.ok(light["--accent"], "nightshift light lost its accent");
+    assert.notEqual(light["--accent"], "#16181c", "the default must not be the mono style");
+  });
+});

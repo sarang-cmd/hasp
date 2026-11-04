@@ -308,6 +308,27 @@ describe("import", () => {
   });
 });
 
+describe("content security policy", () => {
+  test("the inline boot script is allowed by its own hash", async () => {
+    // The theme has to be set before first paint, so it cannot be a module. With a
+    // plain script-src 'self' the browser blocks it silently and the flash it
+    // prevents happens on every load. The hash is what makes that script, and only
+    // that script, legal.
+    const { createHash } = await import("node:crypto");
+    const { readFileSync } = await import("node:fs");
+    const html = readFileSync(new URL("../src/web/index.html", import.meta.url), "utf8");
+    const inline = /<script>([\s\S]*?)<\/script>/.exec(html);
+    assert.ok(inline, "index.html no longer has an inline boot script");
+    const hash = "sha256-" + createHash("sha256").update(inline[1], "utf8").digest("base64");
+
+    const res = await call("/");
+    const csp = res.headers.get("content-security-policy") || "";
+    assert.match(csp, /script-src [^;]*'self'/, "script-src must still allow the app's modules");
+    assert.ok(csp.includes(hash), `CSP does not carry the boot script hash.\n  file: ${hash}\n  csp:  ${csp}`);
+    assert.ok(!csp.includes("'unsafe-inline'") || !/script-src[^;]*unsafe-inline/.test(csp), "script-src must not allow arbitrary inline script");
+  });
+});
+
 describe("export", () => {
   test("exports plaintext with a warning and a download name", async () => {
     const res = await call("/api/export");

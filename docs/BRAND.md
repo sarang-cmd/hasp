@@ -46,6 +46,23 @@ without a webfont request.
 Two accents, one per direction, and they never appear together. That is the whole
 colour system; everything else is a grey from `src/web/tokens.css`.
 
+## Accent styles
+
+The accent is a third axis, set by `data-accent` on `:root`, on top of direction
+and mode.
+
+| Style | Light | Dark | Use |
+| --- | --- | --- | --- |
+| `colour` (default) | the direction's own hex | the direction's own hex | The identity above |
+| `mono` | `#16181c` | `#f2f4f7` | No hue at all |
+| `grey` | `#5f6b7a` | `#8d97a4` | Present but not pulling |
+
+<img src="screens/accents.png" alt="The three accent styles in light and dark">
+
+`colour` is the default and the one this document specifies. The other two exist
+because a surface sometimes has to carry no colour, and a colour that fails
+contrast is not a style choice: every pair is measured in `test/theme.test.mjs`.
+
 ## Files
 
 | File | Size | Use |

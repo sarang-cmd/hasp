@@ -304,8 +304,11 @@ function dashboard(t, { width = 1280, height = 820, selected = 0, lightMode = fa
     // fit inside it, which is what stops the distortion.
     const slot = slotFor(slug);
     d.push(brandTile(slug, t, listX + 14, ry + 13, 30, { selected: on, wide: slot > 1, slot }));
-    d.push(label(t, listX + 58, ry + 25, name, { size: 13.5, weight: on ? 600 : 500 }));
-    d.push(label(t, listX + 58, ry + 41, host, { size: 11.5, role: "mut", mono: true }));
+    // The text column starts after the tile, and a wordmark gets a wider tile.
+    // Hard-coding the offset is what let the Groq wordmark run under "Groq".
+    const textX = listX + 14 + 30 * slot + 14;
+    d.push(label(t, textX, ry + 25, name, { size: 13.5, weight: on ? 600 : 500 }));
+    d.push(label(t, textX, ry + 41, host, { size: 11.5, role: "mut", mono: true }));
 
     // environment tag: a glyph as well as a colour, never colour alone
     const tagW = 46 + tag.length * 4;
