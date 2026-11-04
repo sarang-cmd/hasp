@@ -8,8 +8,12 @@ what runs, and `src/core/` for the crypto that the tests pin down. The sections 
 written so the proposal and the build can be compared; where the build departs from the proposal it
 says so in the code, not by quietly editing this file.
 
-The decisions in section 1 are no longer all open. Name: Hasp. Direction: Foundry, with Nightshift
-available, both with light and dark. Surfaces: web first. The rest still need your answer.
+The decisions in section 1 are no longer all open. Name: Hasp. Direction: Nightshift is the default,
+with Foundry available, both with light and dark. Surfaces: web first. The rest still need your answer.
+
+**Revised after review.** Nightshift leads. It was originally the secondary direction, but the
+neumorphic surface was the one worth looking at, so it became the default and Foundry stayed as the
+structural alternative. Both remain fully supported; only the first paint changed.
 
 The repository held one README before this work. There was no site to audit, so the audit list from the brief becomes the build standard in sections 8 and 9.
 

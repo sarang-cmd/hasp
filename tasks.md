@@ -8,7 +8,8 @@ All twelve design directions are as delivered. Foundry and Nightshift were then 
 
 Decisions and access
 
-- [x] You: Select product name and design direction. Hasp, Foundry with Nightshift, both with light and dark.
+- [x] You: Select product name and design direction. Hasp, Nightshift with Foundry, both with light and dark.
+- [x] You (revised): Nightshift is the default surface; Foundry remains one click away.
 - [ ] You: Approve release sequence and first release audience. Web dashboard built first, on the proposed order.
 - [ ] You: Confirm browsers and desktop and mobile operating systems, including Linux support.
 - [ ] You: Approve import priorities and supported source investigation.
