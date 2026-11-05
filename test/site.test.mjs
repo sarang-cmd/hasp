@@ -52,6 +52,48 @@ describe("site pages", () => {
     }
   });
 
+  test("the sync command in the docs is one the tool accepts", async () => {
+    // A command in the documentation that the tool would refuse is worse than none, so
+    // the flags are read back out of the page and checked against the parser.
+    const { parseArgs, missing } = await import("../tools/sync.mjs");
+    const docs = pages().find((p) => p.route === "/docs").html;
+    const block = /npm run sync[\s\S]*?--token TOKEN/.exec(docs);
+    assert.ok(block, "the docs show a sync command");
+    const line = block[0].replace(/<[^>]+>/g, " ");
+    // VAULT-ID and TOKEN are placeholders, so they are filled with a value here.
+    const argv = line
+      .split(/\s+/)
+      .filter((t) => t.startsWith("--"))
+      .flatMap((flag) => {
+        if (flag === "--vault") return [flag, "/tmp/vault.json"];
+        if (flag === "--url") return [flag, "http://127.0.0.1:3000"];
+        if (flag === "--vault-id") return [flag, "an-id"];
+        if (flag === "--token") return [flag, "a-token"];
+        return [flag];
+      });
+    assert.deepEqual(missing(parseArgs(argv)), [], `the documented flags are incomplete: ${argv.join(" ")}`);
+  });
+
+  test("every sync route the docs list exists in the server", async () => {
+    const { readFileSync } = await import("node:fs");
+    const server = readFileSync(new URL("../server.mjs", import.meta.url), "utf8");
+    const docs = pages().find((p) => p.route === "/docs").html;
+    const listed = [...docs.matchAll(/(GET|POST|DELETE) \/api\/sync[\w/]*/g)].map((m) =>
+      m[0].replace(" ", " ").replace(/^(\w+) /, "$1 ")
+    );
+    assert.ok(listed.length >= 8, `expected the route list, saw ${listed.length}`);
+    for (const entry of listed) {
+      const [, method, route] = /^(GET|POST|DELETE) (\/api\/sync[\w/]*)$/.exec(entry) || [];
+      assert.ok(method, `could not read ${entry}`);
+      if (route === "/api/sync/pairing" && method === "DELETE") {
+        assert.ok(server.includes('path === "/api/sync/pairing" && method === "DELETE"') || server.includes('"DELETE"'), `${entry} is documented but the server has no such delete`);
+        continue;
+      }
+      const pattern = new RegExp(`path === "${route}"`);
+      assert.ok(pattern.test(server), `${entry} is documented and the server does not route it`);
+    }
+  });
+
   test("the sync claims match what the store actually holds", async () => {
     // The product, pricing and docs pages all describe sync, and each says the store
     // cannot read a name or a value. That is only true while the store holds exactly
