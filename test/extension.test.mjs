@@ -39,7 +39,7 @@ describe("manifest", () => {
   test("requests no permission the code does not use", () => {
     // Each granted permission needs a reason in this list. A permission granted
     // "in case" is a permission an attacker can use.
-    const allowed = new Set(["storage", "activeTab"]);
+    const allowed = new Set(["storage", "activeTab", "scripting"]);
     for (const p of manifest().permissions || []) {
       assert.ok(allowed.has(p), `unexpected permission: ${p}`);
     }
@@ -280,5 +280,186 @@ describe("matching a page to items", () => {
     assert.equal(client.hostOf("about:blank"), "");
     assert.equal(client.hostOf("not a url"), "");
     assert.equal(client.hostOf("https://groq.com/console"), "groq.com");
+  });
+});
+
+// --- fill -------------------------------------------------------------------
+//
+// The injected function is the only code here that runs inside a page, so a test
+// that only reads its source would miss the interesting failures. jsdom is used to
+// run it against a real DOM: a field that is hidden, a field that is a decoy, a
+// field whose value setter was overridden by the page.
+
+describe("fill", () => {
+  let fill;
+
+  before(async () => {
+    fill = await import("../extension/lib/fill.js");
+  });
+
+  /**
+   * A page in jsdom, with `armedFill` installed into it.
+   *
+   * The function is evaluated inside the window rather than called from here. That
+   * is what the extension does: executeScript serialises the function and runs it in
+   * the page's own context, which is why it may only use page globals. A test that
+   * called it from node would need `document` from somewhere and would not be
+   * testing the thing that ships.
+   */
+  async function page(html) {
+    const { JSDOM } = await import("jsdom");
+    const dom = new JSDOM(`<!doctype html><body>${html}</body>`, {
+      pretendToBeVisual: true,
+      runScripts: "outside-only",
+    });
+    // jsdom does not lay anything out, so every box is 0x0 and the visibility check
+    // would refuse everything. Give every element a box; a test that cares about
+    // visibility overrides this on the element it names.
+    dom.window.Element.prototype.getBoundingClientRect = function () {
+      return { width: 120, height: 24, top: 0, left: 0, right: 120, bottom: 24, x: 0, y: 0, toJSON() {} };
+    };
+    dom.window.eval(`window.__armedFill = ${fill.armedFill.toString()};`);
+    dom.run = (value, ttl = 20000) => dom.window.__armedFill(value, ttl);
+    return dom;
+  }
+
+  test("fill is refused on a page that is not a web page", () => {
+    for (const url of ["chrome://newtab", "about:blank", "file:///etc/passwd", "", "not a url"]) {
+      assert.equal(fill.fillTarget(url).ok, false, `${url || "(empty)"} was offered fill`);
+    }
+  });
+
+  test("fill is refused on the vault's own origin", () => {
+    const target = fill.fillTarget("http://127.0.0.1:3000/app", "http://127.0.0.1:3000");
+    assert.equal(target.ok, false);
+    assert.equal(target.reason, "vault-page");
+    // A port is part of an origin, so the same host on another port is a different
+    // page and is allowed. Getting this wrong the other way would block the product
+    // from ever filling a local development site.
+    assert.equal(fill.fillTarget("http://127.0.0.1:8080/", "http://127.0.0.1:3000").ok, true);
+  });
+
+  test("a normal web page is offered fill", () => {
+    assert.equal(fill.fillTarget("https://console.groq.com/login").ok, true);
+    assert.equal(fill.fillTarget("http://localhost:5173/").ok, true);
+  });
+
+  test("every refusal has a sentence and the sentences are fixed", () => {
+    assert.match(fill.fillReasonText("not-web-page"), /web page/);
+    assert.match(fill.fillReasonText("vault-page"), /vault/);
+    assert.equal(fill.fillReasonText("no-field"), "");
+    // Nothing page-supplied can reach this function: it takes a reason, not text.
+    assert.equal(fill.armedFill.length, 2);
+  });
+
+  test("a value goes into the field the user was already in", async () => {
+    const dom = await page(`<input id="key" type="text">`);
+    const input = dom.window.document.getElementById("key");
+    input.focus();
+    const out = dom.run("EXAMPLE-value");
+    assert.equal(out.ok, true);
+    assert.equal(out.how, "focused");
+    assert.equal(input.value, "EXAMPLE-value");
+  });
+
+  test("the page is told, so a framework does not post an empty form", async () => {
+    const dom = await page(`<input id="key" type="text">`);
+    const input = dom.window.document.getElementById("key");
+    input.focus();
+    const seen = [];
+    input.addEventListener("input", () => seen.push("input"));
+    input.addEventListener("change", () => seen.push("change"));
+    dom.run("EXAMPLE-value");
+    assert.deepEqual(seen, ["input", "change"]);
+  });
+
+  test("a value setter the page overrode is bypassed", async () => {
+    // This is the failure that looks like "fill did nothing": a site that defines its
+    // own value setter swallows the assignment, the DOM looks right, and the request
+    // goes out empty.
+    const dom = await page(`<input id="key" type="text">`);
+    const input = dom.window.document.getElementById("key");
+    Object.defineProperty(input, "value", { set() {}, get() { return ""; }, configurable: true });
+    input.focus();
+    dom.run("EXAMPLE-value");
+    // Read through the prototype, because the instance property this test defined is
+    // the one being bypassed. Reading `input.value` would read the stub back and
+    // agree with itself.
+    const descriptor = Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, "value");
+    assert.equal(descriptor.get.call(input), "EXAMPLE-value", "the native setter was not used");
+  });
+
+  test("a hidden field is not filled", async () => {
+    const dom = await page(`<input id="key" type="text" style="display:none">`);
+    const input = dom.window.document.getElementById("key");
+    input.focus();
+    const out = dom.run("EXAMPLE-value");
+    assert.equal(out.ok, true, "it falls back to waiting rather than refusing outright");
+    assert.equal(out.how, "armed");
+    assert.equal(input.value, "", "a field the page keeps off screen is a clipboard");
+  });
+
+  test("a checkbox is not a field to fill", async () => {
+    const dom = await page(`<input id="box" type="checkbox">`);
+    const box = dom.window.document.getElementById("box");
+    box.focus();
+    const out = dom.run("EXAMPLE-value");
+    assert.equal(out.how, "armed");
+    assert.equal(box.checked, false);
+  });
+
+  test("when nothing is focused, the next click fills and then stops", async () => {
+    const dom = await page(`<button id="b">Decoy</button><input id="key" type="text">`);
+    const doc = dom.window.document;
+    const input = doc.getElementById("key");
+    const out = dom.run("EXAMPLE-value");
+    assert.equal(out.how, "armed");
+    doc.body.focus();
+    input.dispatchEvent(new dom.window.Event("focusin", { bubbles: true }));
+    assert.equal(input.value, "EXAMPLE-value");
+
+    // Armed once, not forever: a second field on the same page must not receive it.
+    const second = doc.createElement("input");
+    doc.body.appendChild(second);
+    second.dispatchEvent(new dom.window.Event("focusin", { bubbles: true }));
+    assert.equal(second.value, "", "the value was written twice");
+  });
+
+  test("it gives up on its own", async () => {
+    const dom = await page(`<input id="key" type="text">`);
+    const input = dom.window.document.getElementById("key");
+    dom.run("EXAMPLE-value", 10);
+    await new Promise((r) => setTimeout(r, 40));
+    input.dispatchEvent(new dom.window.Event("focusin", { bubbles: true }));
+    assert.equal(input.value, "", "it was still armed after its time ran out");
+  });
+
+  test("no value is left reachable after it is spent", async () => {
+    const dom = await page(`<input id="key" type="text">`);
+    const input = dom.window.document.getElementById("key");
+    input.focus();
+    dom.run("EXAMPLE-value");
+    // The value is in the DOM because that is what was asked for, and in nowhere
+    // else this test can see. The source is checked for the absence of storage.
+    const source = read("lib/fill.js");
+    assert.ok(!/storage|sessionStorage|localStorage|sendMessage|\bfetch\b/.test(source), "the injected code can reach storage or the network");
+  });
+});
+
+describe("what the manifests and pages allow", () => {
+  test("scripting is granted for fill and nothing broader", () => {
+    const perms = manifest().permissions || [];
+    assert.ok(perms.includes("scripting"), "fill cannot work without it");
+    // A content_scripts block would run code on every page the user visits, which
+    // this design deliberately does not do.
+    assert.equal(manifest().content_scripts, undefined);
+  });
+
+  test("the popup refuses to fill the vault page", () => {
+    const source = read("popup.js");
+    assert.match(source, /fillTarget\(activeTab\?\.url, current\.origin/);
+    // The guard is only real if the origin it compares against is ever set. It was
+    // never assigned for a while, which made the vault-page check always pass.
+    assert.match(source, /current\.origin = await getOrigin\(\)/);
   });
 });

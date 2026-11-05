@@ -35,13 +35,21 @@ export function initials(name) {
  * `copyable` is false while locked, because there is nothing to copy and a button
  * that fails is worse than no button.
  */
-export function itemRow(item, { copyable = true } = {}) {
+export function itemRow(item, { copyable = true, fillable = false } = {}) {
   const code = item.totp?.code ? groupCode(item.totp.code) : "";
-  const action = code
+  // A code cannot be filled into a form, and a copy that needs the clipboard is a
+  // worse answer than a fill when the user is looking at a login box. Both are
+  // offered when both make sense, fill first because it is the one that finishes
+  // the job.
+  const copy = code
     ? `<button class="copy" type="button" data-copy-code="${esc(item.id)}" aria-label="Copy the code for ${esc(item.name)}">${esc(code)}</button>`
     : item.value && copyable
       ? `<button class="copy" type="button" data-copy-value="${esc(item.id)}" aria-label="Copy ${esc(item.name)}">Copy</button>`
       : "";
+  const fill = item.value && fillable
+    ? `<button class="copy" type="button" data-fill="${esc(item.id)}" aria-label="Fill ${esc(item.name)} into the page">Fill</button>`
+    : "";
+  const action = copy + fill;
 
   return `<li class="item" data-id="${esc(item.id)}">
     <span class="tile" aria-hidden="true">${esc(initials(item.name))}</span>

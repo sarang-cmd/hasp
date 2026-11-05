@@ -8,10 +8,12 @@
 // What it does provide is the part a popup cannot: knowing whether the vault is
 // reachable and unlocked, from a context that is not about to close.
 //
-// There is no content script. Nothing reads page content, and the extension cannot
-// type into a field on your behalf. Both would be useful and both would mean page
-// data passing through code that must never leak it, so neither ships until it can
-// be done with a threat model behind it.
+// There is no content script. Nothing runs on any page you visit until you click
+// Fill in the popup, which injects one function for twenty seconds. A content
+// script would run on every page and would have to be trusted not to read page
+// content; injection on a click has a much smaller surface. Fill itself, and what
+// a compromised page can and cannot do with it, is in README.md and lib/fill.js.
+// Nothing here reads page content, and this worker cannot type into a field.
 
 import { session, matchHost, state, hostOf } from "./lib/client.js";
 
