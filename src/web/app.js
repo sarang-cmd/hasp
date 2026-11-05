@@ -411,6 +411,7 @@ function renderActivity() {
     deleted: "deleted",
     restored: "restored",
     synced: "synced",
+    rotated: "changed the master password",
   };
   return {
     title: "Activity",
@@ -701,6 +702,26 @@ function renderSettings() {
         </div>
         <div class="error" style="margin-top:14px;color:var(--warn);border-color:var(--warn)">
           Not audited. The plan requires an independent cryptographic review before real secrets are stored.
+        </div>
+        <h2 style="margin-top:22px">Master password</h2>
+        <p>Changing it re-wraps the vault key under a new password and a new salt.
+          No item is decrypted and no item is re-encrypted, because the vault key
+          itself does not change. There is still no recovery, so a password lost
+          after this is a vault lost.</p>
+        <div class="fieldgrid" style="margin-top:12px">
+          <label><span class="flabel">Current</span>
+            <input class="input" type="password" data-pw-current autocomplete="current-password" />
+          </label>
+          <label><span class="flabel">New, 12 characters or more</span>
+            <input class="input" type="password" data-pw-next autocomplete="new-password" />
+          </label>
+          <label><span class="flabel">Repeat the new one</span>
+            <input class="input" type="password" data-pw-repeat autocomplete="new-password" />
+          </label>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:12px">
+          <button class="btn" type="button" data-pw-change>Change password</button>
+          <span class="hint" data-pw-note role="status"></span>
         </div>
       </div>
       <div class="panel">
@@ -1304,6 +1325,8 @@ document.addEventListener("click", async (e) => {
     return location.reload();
   }
 
+  if (t.closest("[data-pw-change]")) return changePassword();
+
   const drop = t.closest(".drop");
   if (drop) return $("input[type=file]", drop)?.click();
 
@@ -1311,6 +1334,44 @@ document.addEventListener("click", async (e) => {
   if (t.closest("[data-pair-start]")) return startPairing();
   if (t.closest("[data-pair-revoke]")) return revokeDevice(t.closest("[data-pair-revoke]").dataset.pairRevoke);
 });
+
+/**
+ * Change the master password from Settings.
+ *
+ * Three fields because a typo in a password with no recovery is a vault lost, and
+ * that is worth one extra box. The match check happens here, before a request, so a
+ * typo costs nothing. The length floor and the current password are checked again by
+ * the server: a client check is a convenience, never a control.
+ */
+async function changePassword() {
+  const note = $("[data-pw-note]");
+  const say = (text, bad = false) => {
+    note.textContent = text;
+    note.style.color = bad ? "var(--warn)" : "";
+  };
+  const current = $("[data-pw-current]").value;
+  const next = $("[data-pw-next]").value;
+  const repeat = $("[data-pw-repeat]").value;
+
+  if (!current) return say("Enter the current password.", true);
+  if (next.length < 12) return say("The new one needs 12 characters or more.", true);
+  if (next !== repeat) return say("The two new passwords do not match.", true);
+  if (next === current) return say("That is the password already in use.", true);
+
+  const button = $("[data-pw-change]");
+  button.disabled = true;
+  say("Changing…");
+  try {
+    await api("/api/password", { method: "POST", body: { current, next } });
+    for (const sel of ["[data-pw-current]", "[data-pw-next]", "[data-pw-repeat]"]) $(sel).value = "";
+    say("Changed. Use the new password next time you unlock.");
+    await loadActivity();
+  } catch (err) {
+    say(err.message, true);
+  } finally {
+    button.disabled = false;
+  }
+}
 
 document.addEventListener("input", (e) => {
   if (!e.target.matches("[data-search]")) return;
@@ -1621,11 +1682,24 @@ function renderGate({ samplePassword, error, wait = 0 }) {
              </div>`
           : ""
       }
+      ${
+        samplePassword
+          ? ""
+          : `<div class="why" style="margin-top:18px;border-top:1px solid var(--line-2);padding-top:14px">
+               <span class="flabel">Not the sample password</span>
+               <p style="font-size:12px;color:var(--ink-2)">This vault does not open with the sample password, so nothing
+               is filled in. Enter the master password you set. There is no recovery: no recovery key and no reset,
+               which is the cost of the password being the only way in.</p>
+             </div>`
+      }
       <p class="hint" style="margin-top:14px">Idle lock after ${Math.round((state.meta.idleMs || 300000) / 60000)} minutes.</p>
     </div>
   </div>`;
 
   const form = $("form", app);
+  // Focus the empty field when there is nothing prefilled, so the gate is usable
+  // without a click.
+  if (!samplePassword) $("[name=password]", form)?.focus();
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = $('button[type="submit"]', form);

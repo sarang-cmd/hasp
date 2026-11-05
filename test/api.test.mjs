@@ -839,3 +839,129 @@ describe("a vault that will not parse", () => {
     }
   });
 });
+
+describe("changing the master password", () => {
+  test("a wrong current password is refused and the session still works", async () => {
+    // The route is behind the session, but it re-checks the password rather than
+    // trusting the cookie. A session says the browser unlocked at some point; it
+    // does not say whoever is at the keyboard knows the password.
+    const before = await call("/api/state");
+    assert.equal(before.status, 200);
+    const res = await call("/api/password", { method: "POST", body: { current: "not-the-password", next: "another-long-sample-password" } });
+    assert.equal(res.status, 401);
+    assert.match(res.json.error, /Wrong master password/);
+    const after = await call("/api/state");
+    assert.equal(after.status, 200, "a failed change locked the session out");
+  });
+
+  test("a new password below the floor is refused with the reason", async () => {
+    const res = await call("/api/password", { method: "POST", body: { current: "foundry-nightshift-2026", next: "short" } });
+    assert.equal(res.status, 400);
+    assert.match(res.json.error, /at least 12/);
+  });
+
+  test("a cross-origin change is refused", async () => {
+    const res = await call("/api/password", {
+      method: "POST",
+      body: { current: "foundry-nightshift-2026", next: "another-long-sample-password" },
+      origin: "https://evil.example",
+    });
+    assert.equal(res.status, 403);
+  });
+});
+
+describe("a vault whose password was changed", () => {
+  test("restarts locked, and the new password opens it", async () => {
+    // Before this, the start up path only ever tried the sample password. A successful
+    // password change therefore made the server unable to boot: it exited with the
+    // same "Wrong master password" a typo produces, which is a confusing way to learn
+    // that a feature worked. It now starts locked and opens through the unlock route.
+    const { mkdtemp, rm } = await import("node:fs/promises");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const dir = await mkdtemp(join(tmpdir(), "hasp-rotate-"));
+
+    const boot = (port) =>
+      spawn(process.execPath, ["server.mjs", `--port=${port}`], {
+        cwd: new URL("..", import.meta.url),
+        env: { ...process.env, HASP_VAULT_DIR: dir, PORT: String(port), HASP_EPHEMERAL: "" },
+        stdio: ["ignore", "pipe", "pipe"],
+      });
+
+    const ready = async (child, port) => {
+      const lines = [];
+      child.stdout.setEncoding("utf8");
+      child.stdout.on("data", (c) => lines.push(c));
+      const deadline = Date.now() + 20000;
+      while (Date.now() < deadline) {
+        if (lines.join("").includes("Hasp on")) return lines.join("");
+        if (child.exitCode !== null) throw new Error(`exited: ${lines.join("")}`);
+        await new Promise((r) => setTimeout(r, 100));
+      }
+      throw new Error("did not start");
+    };
+
+    const talk = async (port, path, { method = "GET", body, cookie = "" } = {}) => {
+      const res = await fetch(`http://127.0.0.1:${port}${path}`, {
+        method,
+        headers: { "content-type": "application/json", ...(cookie ? { cookie } : {}) },
+        body: body === undefined ? undefined : JSON.stringify(body),
+      });
+      const set = res.headers.get("set-cookie");
+      return { status: res.status, json: await res.json().catch(() => null), cookie: set ? set.split(";")[0] : "" };
+    };
+
+    let first;
+    let second;
+    try {
+      first = boot(3925);
+      await ready(first, 3925);
+      const opened = await talk(3925, "/api/unlock", { method: "POST", body: { password: "foundry-nightshift-2026" } });
+      assert.equal(opened.status, 200);
+      const cookie = opened.cookie;
+
+      const created = await talk(3925, "/api/items", {
+        method: "POST",
+        cookie,
+        body: { name: "Survives", type: "api-key", value: "EXAMPLE-restart-value" },
+      });
+      assert.equal(created.status, 201);
+
+      const changed = await talk(3925, "/api/password", {
+        method: "POST",
+        cookie,
+        body: { current: "foundry-nightshift-2026", next: "a-different-long-password" },
+      });
+      assert.equal(changed.status, 200);
+
+      first.kill("SIGTERM");
+      await once(first, "exit").catch(() => {});
+      first = null;
+
+      second = boot(3926);
+      const log = await ready(second, 3926);
+      assert.match(log, /not opened by the sample password/, "the restart did not say why it is locked");
+      assert.match(log, /starting locked/);
+
+      const gate = await talk(3926, "/api/session");
+      assert.equal(gate.json.unlocked, false, "it came up unlocked");
+      assert.equal(gate.json.samplePassword, null, "a password that does not work was offered");
+
+      assert.equal((await talk(3926, "/api/unlock", { method: "POST", body: { password: "foundry-nightshift-2026" } })).status, 401);
+
+      const reopened = await talk(3926, "/api/unlock", { method: "POST", body: { password: "a-different-long-password" } });
+      assert.equal(reopened.status, 200, "the new password did not open the vault after a restart");
+
+      const list = await talk(3926, "/api/state", { cookie: reopened.cookie });
+      assert.equal(list.json.items.filter((i) => i.name === "Survives").length, 1, "an item was lost across the rotation");
+    } finally {
+      for (const child of [first, second]) {
+        if (child && child.exitCode === null) {
+          child.kill("SIGKILL");
+          await once(child, "exit").catch(() => {});
+        }
+      }
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+});
