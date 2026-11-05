@@ -55,6 +55,11 @@ const VAULT_FILE = join(VAULT_DIR, "vault.json");
 // The sync store lives beside the vault. It holds other devices' ciphertext, so it
 // is kept to 0600 like the vault file itself.
 const SYNC_FILE = join(VAULT_DIR, "sync.json");
+// The activity log. Names are kept because this file sits beside the vault at 0600 and
+// the interface has to say which item was copied. Values are never kept, which is the
+// promise the activity view makes.
+const ACTIVITY_FILE = join(VAULT_DIR, "activity.json");
+const ACTIVITY_MAX = 400;
 const PORT = Number(process.env.PORT || process.argv.find((a) => a.startsWith("--port="))?.split("=")[1] || 3000);
 // Read .env before anything consults process.env. A value already in the real
 // environment wins, so a shell variable overrides a file.
@@ -114,6 +119,43 @@ const syncStore = new SyncStore({
 let syncPairing = null;
 
 /**
+ * What happened, newest last.
+ *
+ * An entry names an action, an item and a time. It never carries a value, a note or a
+ * code, so reading this file tells you what was touched and not what it contained.
+ * Capped, because a log that grows without a limit is a disk leak dressed as a feature.
+ */
+let activity = [];
+
+/** Kinds the log understands. A typo here shows up as an unknown action, not silence. */
+const ACTIONS = new Set(["created", "edited", "copied", "deleted", "restored", "synced"]);
+
+/**
+ * Record one event.
+ * @param {string} action one of ACTIONS
+ * @param {{id?: string, name?: string}} item
+ */
+function recordActivity(action, item = {}) {
+  if (!ACTIONS.has(action)) throw new Error(`unknown action: ${action}`);
+  activity.push({
+    action,
+    id: item.id || null,
+    // Truncated, because a name is a label and not a place to hide a secret. The vault
+    // already limits a name to 120 characters.
+    name: String(item.name || "").slice(0, 120),
+    at: new Date().toISOString(),
+  });
+  if (activity.length > ACTIVITY_MAX) activity = activity.slice(-ACTIVITY_MAX);
+}
+
+/** Write the log beside the vault. Separate file, so a corrupted log cannot lose a vault. */
+async function persistActivity() {
+  if (EPHEMERAL) return;
+  await mkdir(VAULT_DIR, { recursive: true });
+  await writeFile(ACTIVITY_FILE, JSON.stringify({ entries: activity }, null, 2), { mode: 0o600 });
+}
+
+/**
  * The conflict log.
  *
  * PLAN.md calls for last write wins with a visible log, and a conflict that exists
@@ -166,6 +208,9 @@ async function persist() {
   await mkdir(VAULT_DIR, { recursive: true });
   const data = JSON.stringify(vault.serialize(), null, 2);
   await writeFile(VAULT_FILE, data, { mode: 0o600 });
+  // Written together, so an entry cannot describe a write that did not land, or be
+  // missing for one that did.
+  await persistActivity();
 }
 
 async function bootVault() {
@@ -184,6 +229,16 @@ async function bootVault() {
       if (Array.isArray(pairing?.log)) syncLog = pairing.log.slice(-SYNC_LOG_MAX);
     } catch {
       // Not paired yet.
+    }
+    // Outside the pairing block on purpose: a machine that has never synced still has
+    // a log, and nesting this inside the pairing read would have made the log appear
+    // empty on exactly those machines.
+    try {
+      const log = JSON.parse(await readFile(ACTIVITY_FILE, "utf8"));
+      if (Array.isArray(log?.entries)) activity = log.entries.slice(-ACTIVITY_MAX);
+    } catch {
+      // No log yet, or one that cannot be read. Both mean an empty log, and neither
+      // is a reason to refuse to open a vault.
     }
     console.log("vault: reopened from .vault/vault.json");
     return;
@@ -422,6 +477,7 @@ async function route(req, res) {
   if (path === "/api/items" && method === "POST") {
     const payload = await body(req);
     const { id } = vault.addItem(payload);
+    recordActivity("created", { id, name: payload.name });
     await persist();
     return json(res, 201, { id });
   }
@@ -430,18 +486,25 @@ async function route(req, res) {
   if (itemMatch) {
     const id = itemMatch[1];
     if (itemMatch[2] && method === "POST") {
+      // Read the name before the touch, because touch rewrites the record and the
+      // reason for the entry is the item it names.
+      const before = vault.readItem(id);
       vault.touch(id);
+      recordActivity("copied", { id, name: before?.name });
       await persist();
       return json(res, 200, { ok: true });
     }
     if (method === "PUT") {
       const payload = await body(req);
       vault.updateItem(id, payload);
+      recordActivity("edited", { id, name: payload.name || vault.readItem(id)?.name });
       await persist();
       return json(res, 200, { ok: true });
     }
     if (method === "DELETE") {
+      const before = vault.readItem(id);
       vault.deleteItem(id);
+      recordActivity("deleted", { id, name: before?.name });
       await persist();
       return json(res, 200, { ok: true });
     }
@@ -883,6 +946,23 @@ async function route(req, res) {
       conflicts,
       seq: syncStore.seq(syncPairing.vaultId),
       vaultSeq: vault.seq,
+    });
+  }
+
+  /* ---- activity */
+
+  /**
+   * What happened, newest first.
+   *
+   * Names are in the log because it lives beside the vault at 0600 and the interface
+   * has to say which item was copied. Values are not, and never were.
+   */
+  if (path === "/api/activity" && method === "GET") {
+    const limit = Math.min(Number(url.searchParams.get("limit")) || 50, ACTIVITY_MAX);
+    return json(res, 200, {
+      entries: activity.slice(-limit).reverse(),
+      total: activity.length,
+      capped: ACTIVITY_MAX,
     });
   }
 

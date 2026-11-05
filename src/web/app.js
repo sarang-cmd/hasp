@@ -23,6 +23,9 @@ const state = {
   conflicts: null,
   // The comparison currently open: a comparison, an error, or null.
   conflictView: null,
+  // The activity log. Null means "not asked yet", which is not the same as empty.
+  activity: null,
+  activityCapped: null,
   selectedId: null,
   query: "",
   type: "all",
@@ -398,28 +401,60 @@ function renderImport() {
 }
 
 function renderActivity() {
-  const events = state.items
-    .slice()
-    .sort((a, b) => (b.lastUsedAt || "").localeCompare(a.lastUsedAt || ""))
-    .slice(0, 12);
+  const entries = state.activity;
+  const label = {
+    created: "added",
+    edited: "edited",
+    copied: "copied",
+    deleted: "deleted",
+    restored: "restored",
+    synced: "synced",
+  };
   return {
     title: "Activity",
-    sub: "Recent use across this vault",
+    sub: "What happened in this vault",
     filters: "",
     body: `<div class="page"><div class="panel">
       <h2>Recent activity</h2>
-      <p>Every copy, fill and rotation is recorded here. Item values never appear in the log.</p>
+      <p>What was added, edited, copied or deleted, newest first. Names are kept so the
+        list can say which item it was. Values, notes and one-time codes never appear
+        here, and neither does anything you searched for.</p>
       <div class="activity" style="border-top:none;padding-top:14px">
-        <ul>
-          ${events
-            .map(
-              (i) => `<li><span>${esc(i.name)} copied</span><span>${relTime(i.lastUsedAt)}</span></li>`
-            )
-            .join("")}
-        </ul>
+        ${entries === null
+          ? `<p class="hint">Reading the log…</p>`
+          : entries.length === 0
+          ? `<p class="hint">Nothing yet. Copy an item and it will appear here.</p>`
+          : `<ul>
+              ${entries
+                .map(
+                  (e) => `<li><span>${esc(e.name || "an item")} ${label[e.action] || esc(e.action)}</span><span>${relTime(e.at)}</span></li>`
+                )
+                .join("")}
+            </ul>`}
       </div>
+      <p class="hint" style="margin-top:14px">The log keeps the last ${state.activityCapped || 400}
+        events. It is a file beside the vault, not a service, and it is deleted when you
+        delete the vault.</p>
     </div></div>`,
   };
+}
+
+/**
+ * Read the log.
+ *
+ * Runs after paint, like the devices and settings panels. It is a real request because
+ * the log is the server's, and a client-side reconstruction from item timestamps could
+ * not tell a copy from an edit, which is the thing it got wrong before.
+ */
+async function loadActivity() {
+  try {
+    const data = await api("/api/activity");
+    state.activity = data.entries;
+    state.activityCapped = data.capped;
+  } catch {
+    state.activity = [];
+  }
+  if (state.view === "activity") render();
 }
 
 function renderDevices() {
@@ -733,6 +768,7 @@ function render() {
   // refused request cannot stop the page from painting.
   if (state.view === "devices") loadDevices();
   if (state.view === "settings") loadSync();
+  if (state.view === "activity") loadActivity();
 }
 
 /* ---------------------------------------------------------------- toast */

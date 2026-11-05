@@ -149,6 +149,57 @@ describe("session", () => {
     assert.ok(groq.why.includes("console.groq.com"), "every item carries its suggestion reason");
   });
 
+  test("the activity log records what happened, and never a value", async () => {
+    // The view used to claim "every copy, fill and rotation is recorded" while showing
+    // one timestamp per item and labelling every row "copied". This is the log that
+    // claim needed.
+    const created = await call("/api/items", {
+      method: "POST",
+      body: { name: "Log subject", type: "api-key", service: "Logger", value: "EXAMPLE-log-secret-value" },
+    });
+    assert.equal(created.status, 201);
+    const id = created.json.id;
+    await call(`/api/items/${id}`, { method: "PUT", body: { value: "EXAMPLE-log-rotated" } });
+    await call(`/api/items/${id}/touch`, { method: "POST", body: {} });
+
+    const log = await call("/api/activity");
+    assert.equal(log.status, 200);
+    const actions = log.json.entries.filter((e) => e.id === id).map((e) => e.action).reverse();
+    assert.deepEqual(actions, ["created", "edited", "copied"], "each write has its own entry");
+    for (const entry of log.json.entries) {
+      assert.equal(typeof entry.at, "string");
+      assert.ok(entry.name.length > 0, "an entry names its item");
+    }
+    // Newest first, so the list reads the way the view shows it.
+    const times = log.json.entries.map((e) => e.at);
+    assert.deepEqual(times, [...times].sort().reverse());
+
+    // The promise the view makes. Checked against the reply and against the file.
+    const text = JSON.stringify(log.json);
+    assert.equal(text.includes("EXAMPLE-log-secret-value"), false);
+    assert.equal(text.includes("EXAMPLE-log-rotated"), false);
+  });
+
+  test("a delete and a restore are logged as themselves", async () => {
+    const created = await call("/api/items", {
+      method: "POST",
+      body: { name: "Delete subject", type: "api-key", value: "EXAMPLE-delete-me" },
+    });
+    const id = created.json.id;
+    await call(`/api/items/${id}`, { method: "DELETE" });
+    const log = await call("/api/activity");
+    const mine = log.json.entries.filter((e) => e.id === id).map((e) => e.action);
+    assert.ok(mine.includes("deleted"), `saw ${mine.join(", ")}`);
+    assert.ok(mine.includes("created"));
+  });
+
+  test("the log is capped and says so", async () => {
+    const log = await call("/api/activity?limit=2");
+    assert.ok(log.json.entries.length <= 2);
+    assert.ok(Number.isInteger(log.json.capped) && log.json.capped > 0);
+    assert.ok(log.json.total >= log.json.entries.length);
+  });
+
   test("a query searches the blind index and reports that it did", async () => {
     const res = await call("/api/state?q=stripe");
     assert.equal(res.status, 200);

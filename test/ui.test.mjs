@@ -711,6 +711,34 @@ describe("other views", () => {
     assert.match(text, /independent cryptographic review/i);
   });
 
+  test("the activity view reads the log and names the action", async () => {
+    // The old view derived its rows from item timestamps and labelled every one
+    // "copied", which it could not know. This checks the real log instead.
+    document.querySelector('[data-view="activity"]').dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await settle(14);
+    const text = () => document.getElementById("app").textContent;
+    // The seeded vault has not been touched yet, so the view must say so rather than
+    // invent rows or look broken.
+    assert.match(text(), /Recent activity/);
+    assert.match(text(), /Nothing yet|added|edited|copied/);
+
+    // Make a real action through the app's own fetch, then reload the view.
+    const res = await window.fetch("/api/items", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "Activity witness", type: "api-key", value: "EXAMPLE-witness" }),
+    });
+    assert.equal(res.status, 201);
+    document.querySelector('[data-view="vault"]').dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await settle(6);
+    document.querySelector('[data-view="activity"]').dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await settle(14);
+
+    assert.match(text(), /Activity witness added/, "the action is named, not guessed");
+    // And the promise in the copy is kept: no value appears.
+    assert.equal(text().includes("EXAMPLE-witness"), false, "a value reached the log view");
+  });
+
   test("the sync panel starts off, turns on, shows the token once and turns off", async () => {
     document.querySelector('[data-view="settings"]').dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await settle(12);

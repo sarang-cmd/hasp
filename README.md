@@ -44,7 +44,7 @@ below the floor. The palette cannot drift quietly.
 ```
 npm install
 npm start            # http://localhost:3000
-npm test             # 496 cases
+npm test             # 507 cases
 ```
 
 Node 22 or newer. No database, no environment variables, no network at runtime.
@@ -114,6 +114,22 @@ Stated plainly, because the header above says "sealed" and that word has a floor
   renderer's own default, so they came from that path and not from a browser.
   `npm run png` captures the real app at 1400x900 when a browser is available.
 
+## What is on disk
+
+`.vault/` holds four files, all `0600`, none of them readable by the server's own
+code without a key:
+
+| File | What is in it |
+| --- | --- |
+| `vault.json` | Every item, sealed. Names, notes and values are ciphertext. |
+| `activity.json` | The last 400 events. Item names and actions, never a value. |
+| `sync.json` | The ciphertext other machines pushed. No key, so nothing to read. |
+| `sync-pairing.json` | The store token hash and the conflict log. |
+
+An activity log names items, because a list that cannot say which item was copied is
+not a log. It never holds a value, a note or a one-time code, and deleting the vault
+directory deletes it.
+
 ## Layout
 
 ```
@@ -121,7 +137,7 @@ server.mjs            one node:http server, static files + JSON API, no dependen
 src/core/             kdf, crypto, wrap, vault, totp, backup codes, parsers, seed
 src/web/              the client: tokens, components, app, themes page, brands, fonts
 src/web/heroicons/    vendored Heroicons solid, MIT, licence beside them
-test/                 496 cases: crypto, TOTP, parsers, contrast, API, and the real client in jsdom
+test/                 507 cases: crypto, TOTP, parsers, contrast, API, and the real client in jsdom
 tools/                icon and brand generation, the renderer, the Playwright capture
 docs/BRAND.md         the identity: mark, wordmark, colour, clear space
 ```
