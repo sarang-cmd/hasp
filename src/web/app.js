@@ -26,6 +26,8 @@ const state = {
   // The activity log. Null means "not asked yet", which is not the same as empty.
   activity: null,
   activityCapped: null,
+  // Deleted items that can be brought back. Null means "not asked yet".
+  deleted: null,
   selectedId: null,
   query: "",
   type: "all",
@@ -435,6 +437,23 @@ function renderActivity() {
       <p class="hint" style="margin-top:14px">The log keeps the last ${state.activityCapped || 400}
         events. It is a file beside the vault, not a service, and it is deleted when you
         delete the vault.</p>
+      <h2 style="margin-top:26px">Deleted</h2>
+      <p>An item you deleted is kept as a record so the change can sync. It is still
+        sealed, which is why bringing one back needs no export and no backup.</p>
+      <div data-deleted style="margin-top:12px">
+        ${state.deleted === null
+          ? `<p class="hint">Reading…</p>`
+          : state.deleted.length === 0
+          ? `<p class="hint">Nothing deleted.</p>`
+          : `<ul class="activity" style="border-top:none;padding-top:0">
+              ${state.deleted
+                .map(
+                  (i) => `<li><span>${esc(i.name)} <span class="hint">${esc(i.type)}</span></span>
+                    <span>${relTime(i.deletedAt)} <button class="btn btn--small" type="button" data-restore="${esc(i.id)}">Restore</button></span></li>`
+                )
+                .join("")}
+            </ul>`}
+      </div>
     </div></div>`,
   };
 }
@@ -453,6 +472,11 @@ async function loadActivity() {
     state.activityCapped = data.capped;
   } catch {
     state.activity = [];
+  }
+  try {
+    state.deleted = (await api("/api/items/deleted")).items;
+  } catch {
+    state.deleted = [];
   }
   if (state.view === "activity") render();
 }
@@ -1080,6 +1104,20 @@ document.addEventListener("click", async (e) => {
     return render();
   }
 
+  const restore = t.closest("[data-restore]");
+  if (restore) {
+    try {
+      await api(`/api/items/${restore.dataset.restore}?restore=1`, { method: "POST" });
+      await refresh();
+      state.deleted = null;
+      await loadActivity();
+      toast("Item restored");
+    } catch (err) {
+      toast(err.message);
+    }
+    return;
+  }
+
   if (t.closest("[data-add]")) return openEditor(null);
 
   const editBtn = t.closest("[data-edit]");
@@ -1092,7 +1130,7 @@ document.addEventListener("click", async (e) => {
   if (t.closest("[data-delete]")) {
     const item = state.items.find((i) => i.id === state.selectedId);
     if (!item) return;
-    if (!confirm(`Delete "${item.name}"? It can be restored from the vault data.`)) return;
+    if (!confirm(`Delete "${item.name}"? It stays in the vault and can be restored from Activity.`)) return;
     await api(`/api/items/${item.id}`, { method: "DELETE" });
     state.selectedId = null;
     await refresh();

@@ -180,6 +180,36 @@ describe("session", () => {
     assert.equal(text.includes("EXAMPLE-log-rotated"), false);
   });
 
+  test("a deleted item can be listed and brought back", async () => {
+    // The delete confirmation said an item "can be restored from the vault data" while
+    // no route existed to list or restore one. This is that route, both ways.
+    const created = await call("/api/items", {
+      method: "POST",
+      body: { name: "Bring back me", type: "api-key", service: "Return", value: "EXAMPLE-return" },
+    });
+    const id = created.json.id;
+    await call(`/api/items/${id}`, { method: "DELETE" });
+
+    const deleted = await call("/api/items/deleted");
+    assert.equal(deleted.status, 200);
+    const found = deleted.json.items.find((i) => i.id === id);
+    assert.ok(found, "the deleted item is listed");
+    assert.equal(found.name, "Bring back me", "and it is readable, not a stub row");
+    assert.equal(found.value, "EXAMPLE-return", "with its value intact, because it was never dropped");
+    assert.ok(found.deletedAt);
+
+    const restored = await call(`/api/items/${id}?restore=1`, { method: "POST", body: {} });
+    assert.equal(restored.status, 200);
+    const after = await call("/api/items/deleted");
+    assert.equal(after.json.items.some((i) => i.id === id), false, "it left the deleted list");
+    const state = await call("/api/state");
+    assert.ok(state.json.items.some((i) => i.id === id), "and it is in the vault again");
+
+    // The restore is in the log, which is what the ACTIONS set always promised.
+    const log = await call("/api/activity");
+    assert.ok(log.json.entries.some((e) => e.id === id && e.action === "restored"));
+  });
+
   test("a delete and a restore are logged as themselves", async () => {
     const created = await call("/api/items", {
       method: "POST",
