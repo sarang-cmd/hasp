@@ -168,6 +168,71 @@ function showWindow() {
 
 /* -------------------------------------------------------------------- tray */
 
+/**
+ * What a round means, in a sentence.
+ *
+ * Split out from the request so it can be tested without a window or a network. The
+ * tray has no room for a paragraph, so every branch returns one short sentence and a
+ * flag saying whether the vault did what it was asked.
+ *
+ * @param {number} status
+ * @param {object} body the parsed reply
+ */
+function describeRound(status, body) {
+  // A locked vault answers 401 here, because the round is behind the session gate.
+  // 423 is kept as well: the phone routes use it for the same meaning, and a route
+  // that switches to it later should not turn this into "the vault answered 423".
+  if (status === 401 || status === 423) return { ok: false, text: "The vault is locked. Unlock it to sync." };
+  if (status === 409) return { ok: false, text: "Sync is off for this vault." };
+  if (status < 200 || status >= 300) return { ok: false, text: body?.error || `The vault answered ${status}.` };
+  const conflicts = body?.conflicts?.length || 0;
+  if (conflicts) {
+    // Not a failure. It is a decision waiting to be made, and saying so is the
+    // difference between "something broke" and "go and look at this".
+    return {
+      ok: false,
+      text: `${conflicts} item${conflicts === 1 ? "" : "s"} changed on two machines. Open Settings to compare.`,
+      conflicts,
+    };
+  }
+  const applied = body?.pulled?.applied ?? 0;
+  const pushed = body?.pushed ?? 0;
+  if (!applied && !pushed) return { ok: true, text: "Already up to date." };
+  return { ok: true, text: `${applied} in, ${pushed} out.` };
+}
+
+/**
+ * Run one sync round and describe it in a sentence.
+ *
+ * The shell does not reimplement sync. It calls the route the panel calls, so a bug
+ * fixed in one is fixed in both, and the tray cannot drift from what Settings says.
+ *
+ * A conflict is not an error here. It is a decision waiting to be made, so it is
+ * reported as one rather than as a failure.
+ */
+async function runSyncRound() {
+  try {
+    const res = await fetch(`${ORIGIN}/api/sync/round`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ since: 0 }),
+    });
+    const body = await res.json().catch(() => ({}));
+    // A locked vault answers 401 here, because the round is behind the session gate.
+    // 423 is kept as well: the phone routes use it for the same meaning, and a route
+    // that switches to it later should not turn this sentence into "the vault
+    // answered 423".
+    return describeRound(res.status, body);
+  } catch {
+    return { ok: false, text: "The vault did not answer." };
+  }
+}
+
+/** Tell the user what a round did, without stealing focus. */
+function report(win, message) {
+  if (win && !win.isDestroyed()) win.webContents.send("hasp:notice", message);
+}
+
 function createTray() {
   const icon = nativeImage.createFromPath(join(__dirname, "icons", "tray.png"));
   tray = new Tray(icon.isEmpty() ? nativeImage.createEmpty() : icon);
@@ -189,6 +254,17 @@ function createTray() {
             // The vault may already be gone.
           }
           if (mainWindow) mainWindow.webContents.send("vault:locked");
+        },
+      },
+      { type: "separator" },
+      {
+        label: "Sync now",
+        click: async () => {
+          const result = await runSyncRound();
+          // The tray has no room for a paragraph, so the tooltip carries the sentence
+          // and the window gets a notice that says the same thing.
+          if (tray && !tray.isDestroyed()) tray.setToolTip(`Hasp. ${result.text}`);
+          report(mainWindow, result.text);
         },
       },
       { type: "separator" },
@@ -262,3 +338,7 @@ ipcMain.handle("hasp:info", () => ({
   origin: ORIGIN,
   vaultDir: VAULT_DIR,
 }));
+
+// The same round, reachable from the renderer. The panel calls the HTTP route
+// directly, so this exists for a shell that is showing its own chrome later.
+ipcMain.handle("hasp:sync-round", () => runSyncRound());
