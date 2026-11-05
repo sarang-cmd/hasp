@@ -33,4 +33,22 @@ contextBridge.exposeInMainWorld("haspDesktop", {
       ipcRenderer.removeListener("vault:locked", handler);
     };
   },
+
+  /**
+   * Run one sync round from the tray or from the page.
+   *
+   * It returns a sentence, not a vault, so this cannot become a way to read items
+   * through privileged code. The round talks to the same HTTP route the panel uses.
+   */
+  syncRound: () => ipcRenderer.invoke("hasp:sync-round"),
+
+  /**
+   * A short message the shell wants the page to show, such as what a tray sync did.
+   * One argument, and unsubscribing is returned, for the same reason as above.
+   */
+  onNotice: (listener) => {
+    const handler = (_event, message) => listener(message);
+    ipcRenderer.on("hasp:notice", handler);
+    return () => ipcRenderer.removeListener("hasp:notice", handler);
+  },
 });

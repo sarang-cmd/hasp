@@ -84,12 +84,66 @@ describe("main process", () => {
 });
 
 describe("preload bridge", () => {
-  test("exposes two things and no more", () => {
+  test("exposes a named list of things and no more", () => {
+    // The list is written out rather than counted, so adding to the bridge is a
+    // decision someone made in this file and not something that happened by accident.
     const exposed = [...preload.matchAll(/contextBridge\.exposeInMainWorld\("(\w+)",\s*\{([\s\S]*?)\n\}\);/g)];
     assert.equal(exposed.length, 1, "more than one bridge");
     assert.equal(exposed[0][1], "haspDesktop");
     const keys = [...exposed[0][2].matchAll(/^\s{2}(\w+):/gm)].map((m) => m[1]);
-    assert.deepEqual(keys.sort(), ["info", "isDesktop", "onVaultEvent"]);
+    assert.deepEqual(keys.sort(), ["info", "isDesktop", "onNotice", "onVaultEvent", "syncRound"]);
+  });
+
+  test("every round outcome has its own sentence", () => {
+    // The function is lifted out of the source and evaluated, because requiring the
+    // file outside Electron throws at the first line that asks for an app. That makes
+    // this a real execution rather than a search for strings.
+    const body = /function describeRound\(status, body\) \{([\s\S]*?)\n\}/.exec(main);
+    assert.ok(body, "describeRound is in the shell");
+    const describeRound = new Function("status", "body", body[1]);
+
+    assert.equal(describeRound(401, {}).text, "The vault is locked. Unlock it to sync.");
+    assert.equal(describeRound(423, {}).text, "The vault is locked. Unlock it to sync.");
+    assert.equal(describeRound(409, {}).text, "Sync is off for this vault.");
+    assert.match(describeRound(500, { error: "Something went wrong" }).text, /Something went wrong/);
+    assert.match(describeRound(500, {}).text, /answered 500/);
+
+    // A conflict is reported as a decision, and counted in the singular properly.
+    const one = describeRound(200, { pushed: 0, pulled: { applied: 0 }, conflicts: [{ id: "a" }] });
+    assert.equal(one.ok, false, "a conflict is not a success");
+    assert.match(one.text, /^1 item changed/, one.text);
+    assert.equal(one.conflicts, 1);
+    const two = describeRound(200, { pushed: 0, pulled: { applied: 0 }, conflicts: [{ id: "a" }, { id: "b" }] });
+    assert.match(two.text, /^2 items changed/, two.text);
+
+    // Quiet, and work, and both say what moved.
+    assert.equal(describeRound(200, { pushed: 0, pulled: { applied: 0 }, conflicts: [] }).text, "Already up to date.");
+    const busy = describeRound(200, { pushed: 2, pulled: { applied: 3 }, conflicts: [] });
+    assert.equal(busy.ok, true);
+    assert.equal(busy.text, "3 in, 2 out.");
+    // A reply with nothing in it must not read as a crash.
+    assert.equal(describeRound(200, {}).text, "Already up to date.");
+  });
+
+  test("a tray sync reports through the tooltip and the window", () => {
+    assert.match(main, /label: "Sync now"/);
+    assert.match(main, /setToolTip\(`Hasp\. \$\{result\.text\}`\)/);
+    assert.match(main, /report\(mainWindow, result\.text\)/);
+  });
+
+  test("a sync round through the bridge returns a sentence, not a vault", () => {
+    // The renderer can already fetch the vault over loopback. What it must not gain is
+    // a privileged path to item data, so the round reports text and nothing else.
+    const main = readFileSync(new URL("../desktop/main.js", import.meta.url), "utf8");
+    const handler = /ipcMain\.handle\("hasp:sync-round",([\s\S]*?)\);\n/.exec(main);
+    assert.ok(handler, "the round handler is registered");
+    const body = handler[1];
+    assert.match(body, /runSyncRound\(\)/, "it calls the one implementation");
+    const fn = /async function runSyncRound\(\)([\s\S]*?)\n\}/.exec(main);
+    assert.ok(fn, "the round has a body");
+    // Every branch returns { ok, text }. None returns items.
+    assert.equal(/return\s*\{[^}]*\bitems\b/.test(fn[1]), false, "the round returns item data");
+    assert.match(fn[1], /text:/);
   });
 
   test("the bridge cannot reach the vault", () => {

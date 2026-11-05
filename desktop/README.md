@@ -17,6 +17,10 @@ Run it from the repository:
   application.
 - A tray item, so the vault keeps running when the window is closed, and one click
   locks it when you walk away.
+- A `Sync now` item in the same tray menu. It runs one round and puts the result in
+  the tooltip and in the window: `3 in, 2 out`, `Already up to date`, or the number
+  of items that changed on two machines. It calls the same route the settings panel
+  calls, so the two cannot disagree.
 - A vault directory in the application data directory rather than in whatever
   folder a terminal happened to be in.
 
