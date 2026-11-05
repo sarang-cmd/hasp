@@ -378,28 +378,42 @@ npm start</pre>
 <section class="section">
   <div class="wrap measure">
     <h2>Two machines, one vault</h2>
-    <p class="body">Start the server, unlock the vault, then call
-      <code>POST /api/sync/start</code>. It answers with a vault id and a write token,
-      and that token is shown once. The store keeps a hash of it, so a token that is not
-      written down cannot be recovered, only rotated.</p>
-    <p class="body">On the second machine, open the same vault file and point the sync
-      client at the first machine with that token. <code>POST /api/sync/round</code> takes
-      a <code>since</code> value and does both halves: it applies what is new, then sends
-      what is new. The reply carries the highest sequence number it reached, so the next
-      round asks only for what came after it.</p>
+    <p class="body">Sync is off until you turn it on. Open Settings and press
+      <code>Turn sync on</code>. The panel shows a write token once, and only once,
+      because the store keeps a hash of it rather than the token. A token you did not
+      write down cannot be recovered, only rotated.</p>
+    <p class="body">On the second machine, run one command with that token:</p>
+    <pre style="font-family:var(--mono);font-size:13px;background:var(--paper-2);border:1px solid var(--rule);padding:16px;overflow-x:auto;margin-top:16px">HASP_PASSWORD=... npm run sync -- \
+  --vault ~/.hasp/vault.json \
+  --url http://192.168.1.20:3000 \
+  --vault-id VAULT-ID --token TOKEN</pre>
+    <p class="body">It reads the master password from the environment rather than a flag,
+      because a shell history outlives the command. It asks only for what changed since
+      this machine's last sequence number, proves every record by opening it under this
+      vault's key, and writes the file back only when something landed. A record it cannot
+      open is counted, left out, and the run exits non-zero.</p>
+    <p class="body">Nothing schedules that command. If you want two machines kept level,
+      run it or put it in cron. A machine that has never held the vault file cannot start,
+      because sync moves ciphertext between copies of one vault and does not create the
+      first one.</p>
     <p class="body">Everything in flight is a record the vault already stores encrypted.
       The store sees the vault id, the record id, a revision, timestamps, the item type
       and the blind index. It cannot read a name, a note or a value.</p>
     <p class="body">When two machines change the same item from the same starting point,
-      both reach the same revision with different ciphertext. The store refuses the
-      second and reports it. Nothing is merged, because the store can read neither side.
-      The item stays as it was and the losing machine keeps its own copy until you decide.</p>
-    <p class="body">Settings lists each clash with a comparison: both copies decrypted, field
-      by field, and a button for each. Keeping one raises its revision above the one that
-      lost and sends it out, so the next round is quiet. That comparison is the only route
-      that returns a plaintext value from the store's copy, and it can only do so because
-      the process running it holds the vault key.</p>
-  </div>
+      both reach the same revision with different ciphertext. The store refuses the second
+      and reports it. Nothing is merged, because the store can read neither side.</p>
+    <p class="body">Settings lists each clash with a comparison: both copies decrypted,
+      field by field, and a button for each. Keeping one raises its revision above the one
+      that lost and sends it out, so the next round is quiet. There is no three way merge
+      and no way to keep half of each. That comparison is the only route that returns a
+      plaintext value from the store's copy, and it can only do so because the process
+      running it holds the vault key.</p>
+    <p class="body">The routes, if you would rather script it. <code>POST /api/sync/start</code>,
+      <code>GET /api/sync/status</code>, <code>POST /api/sync/round</code>,
+      <code>POST /api/sync/pull</code>, <code>GET /api/sync/conflicts</code>,
+      <code>GET /api/sync/conflicts/compare</code>, <code>POST /api/sync/conflicts/resolve</code>
+      and <code>DELETE /api/sync/pairing</code>.</p>
+    </div>
 </section>
 
 <section class="section">
