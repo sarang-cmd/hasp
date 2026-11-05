@@ -130,7 +130,7 @@ let syncPairing = null;
 let activity = [];
 
 /** Kinds the log understands. A typo here shows up as an unknown action, not silence. */
-const ACTIONS = new Set(["created", "edited", "copied", "deleted", "restored", "synced"]);
+const ACTIONS = new Set(["created", "edited", "copied", "deleted", "restored", "synced", "rotated"]);
 
 /**
  * Record one event.
@@ -181,6 +181,13 @@ let devices = [];
 const pairingSeen = new Map();
 const PAIRING_TTL = 120;
 let bootPassword = null;
+/**
+ * True when the vault file did not open with the built in sample password, which is
+ * what a changed master password looks like at start up. The client is told there is
+ * no sample password in that case: offering one that does not work would be a lie in
+ * the one place a person is trying to get into their vault.
+ */
+let bootLocked = false;
 
 /**
  * The parsed import awaiting a decision. Bound to a single use: accepting clears
@@ -255,16 +262,35 @@ async function bootVault() {
     // The preview has no way to ask for the password before a request, so a
     // persisted vault is reopened with the sample password. A real deployment
     // unlocks per session instead.
-    vault = await Vault.unlock(stored, SAMPLE_PASSWORD);
+    //
+    // A changed password means this fails. Refusing to start would leave a server
+    // that cannot open the vault it was pointed at and cannot be told the password
+    // either, so it starts locked instead: the gate is shown, nothing is prefilled,
+    // and the vault's own password opens it through the unlock route. Before this,
+    // a successful password change made the server unable to boot at all, with the
+    // same message as a wrong password, which is a very confusing way to learn that
+    // a feature worked.
+    try {
+      vault = await Vault.unlock(stored, SAMPLE_PASSWORD);
+    } catch {
+      vault = null;
+      bootLocked = true;
+      console.log(`vault: ${relative(ROOT, VAULT_FILE) || VAULT_FILE} is not opened by the sample password`);
+      console.log("vault: starting locked. Unlock with the vault's own master password.");
+    }
     // A sync pairing is recorded beside the vault so a restart does not silently
     // stop the other device from syncing. A missing or unreadable record just means
     // this machine is not paired, which is a safe default.
-    try {
-      const pairing = JSON.parse(await readFile(PAIRING_FILE, "utf8"));
-      if (pairing?.vaultId === vault.meta.id && pairing?.token) syncPairing = pairing;
-      if (Array.isArray(pairing?.log)) syncLog = pairing.log.slice(-SYNC_LOG_MAX);
-    } catch {
-      // Not paired yet.
+    // Nothing to compare a pairing against while boot-locked, so the record is left
+    // for the unlock route to read once there is a vault to check it against.
+    if (vault) {
+      try {
+        const pairing = JSON.parse(await readFile(PAIRING_FILE, "utf8"));
+        if (pairing?.vaultId === vault.meta.id && pairing?.token) syncPairing = pairing;
+        if (Array.isArray(pairing?.log)) syncLog = pairing.log.slice(-SYNC_LOG_MAX);
+      } catch {
+        // Not paired yet.
+      }
     }
     // Outside the pairing block on purpose: a machine that has never synced still has
     // a log, and nesting this inside the pairing read would have made the log appear
@@ -276,7 +302,7 @@ async function bootVault() {
       // No log yet, or one that cannot be read. Both mean an empty log, and neither
       // is a reason to refuse to open a vault.
     }
-    console.log("vault: reopened from .vault/vault.json");
+    if (vault) console.log("vault: reopened from .vault/vault.json");
     return;
   }
   vault = await Vault.create({ name: "Sarang, personal", password: SAMPLE_PASSWORD });
@@ -393,7 +419,7 @@ async function route(req, res) {
       idleMs: IDLE_MS,
       remainingMs: s ? remainingMs(cookies(req)[COOKIE]) : 0,
       meta: vault?.meta ?? null,
-      samplePassword: bootPassword,
+      samplePassword: bootLocked ? null : bootPassword,
       // The client needs to know whether to render a logo at all, and which
       // public key to use if it does. It never needs the secret.
       logoProxy: Boolean(keyFromEnv()),
@@ -403,6 +429,44 @@ async function route(req, res) {
 
   if (path === "/api/unlock" && method === "POST") {
     const { password } = await body(req);
+
+    // Booted locked, because the file did not open with the sample password. Read it
+    // from disk here and let the real password through the same throttle the gate
+    // uses. Without this the server answers 503 forever and the vault on disk is
+    // unreachable from the only surface that can read it.
+    if (!vault && bootLocked) {
+      const addr = req.socket.remoteAddress || "unknown";
+      const waitLocked = retryAfter(addr);
+      if (waitLocked > 0) {
+        return json(res, 429, { error: `Too many attempts. Wait ${Math.ceil(waitLocked / 1000)} seconds.` }, { "retry-after": String(Math.ceil(waitLocked / 1000)) });
+      }
+      try {
+        const stored = JSON.parse(await readFile(VAULT_FILE, "utf8"));
+        vault = await Vault.unlock(stored, String(password || ""));
+      } catch {
+        vault = null;
+        const delay = recordFailure(addr);
+        return json(res, 401, {
+          error: delay > 0 ? `Wrong master password. Next attempt in ${Math.ceil(delay / 1000)} seconds.` : "Wrong master password",
+        });
+      }
+      recordSuccess(addr);
+      bootLocked = false;
+      // The pairing record is read now, because there is finally a vault id to check
+      // it against. A restart after a password change used to lose the pairing.
+      try {
+        const pairing = JSON.parse(await readFile(PAIRING_FILE, "utf8"));
+        if (pairing?.vaultId === vault.meta.id && pairing?.token) syncPairing = pairing;
+        if (Array.isArray(pairing?.log)) syncLog = pairing.log.slice(-SYNC_LOG_MAX);
+      } catch {
+        // Not paired yet.
+      }
+      const id = createSession(vault.meta.id, vault.vaultKeyForSession());
+      return json(res, 200, { unlocked: true, meta: vault.meta }, {
+        "set-cookie": `${COOKIE}=${id}; HttpOnly; Path=/; SameSite=Strict; Max-Age=${Math.floor(IDLE_MS / 1000)}`,
+      });
+    }
+
     if (!vault) return json(res, 503, { error: "Vault not ready" });
 
     // Bound the guess rate before spending a derivation on it. The key is the
@@ -438,6 +502,49 @@ async function route(req, res) {
   if (path === "/api/lock" && method === "POST") {
     forget(cookies(req)[COOKIE]);
     return json(res, 200, { locked: true }, { "set-cookie": `${COOKIE}=; HttpOnly; Path=/; SameSite=Strict; Max-Age=0` });
+  }
+
+  /**
+   * Change the master password.
+   *
+   * Behind the session, and re-checking the current password here rather than
+   * trusting the cookie. The old password is also the throttle key, so guessing it
+   * from a live session is bounded the same way guessing it at the gate is: an
+   * unlocked machine left alone is exactly what the idle lock exists for.
+   */
+  if (path === "/api/password" && method === "POST") {
+    const { current, next } = await body(req);
+    if (!vault) return json(res, 503, { error: "Vault not ready" });
+
+    const addr = req.socket.remoteAddress || "unknown";
+    const waitNow = retryAfter(addr);
+    if (waitNow > 0) {
+      return json(res, 429, { error: `Too many attempts. Wait ${Math.ceil(waitNow / 1000)} seconds.` }, { "retry-after": String(Math.ceil(waitNow / 1000)) });
+    }
+
+    try {
+      await vault.changePassword(String(current || ""), String(next || ""));
+    } catch (err) {
+      if (/Wrong master password/.test(err.message)) {
+        const delay = recordFailure(addr);
+        return json(res, 401, {
+          error: delay > 0 ? `Wrong master password. Next attempt in ${Math.ceil(delay / 1000)} seconds.` : "Wrong master password",
+        });
+      }
+      return json(res, 400, { error: err.message });
+    }
+    recordSuccess(addr);
+    // The file is the only copy of the new wrap. A failed write leaves this process
+    // on the new password and the disk on the old one, so it is reported rather than
+    // swallowed: the next start would otherwise come up locked with no explanation.
+    try {
+      await persist();
+    } catch (err) {
+      return json(res, 500, { error: `The password changed but could not be written: ${err.message}` });
+    }
+    recordActivity("rotated", { id: vault.meta.id, name: vault.meta.name });
+    await persistActivity();
+    return json(res, 200, { ok: true, meta: vault.meta });
   }
 
   /* ---- everything below needs a session */
@@ -506,7 +613,7 @@ async function route(req, res) {
       // guessing.
       indexed: q ? true : undefined,
       meta: { ...vault.meta, kdf: KDF.algorithm, idleMs: IDLE_MS },
-      samplePassword: bootPassword,
+      samplePassword: bootLocked ? null : bootPassword,
     });
   }
 

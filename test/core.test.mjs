@@ -296,3 +296,61 @@ describe("sessions", () => {
     assert.equal(createSession("v", newItemKey()).length > 20, true);
   });
 });
+
+describe("changing the master password", () => {
+  const OLD = "foundry-nightshift-2026";
+  const NEW = "a-different-sample-password-1";
+
+  test("the new password opens the vault and the old one does not", async () => {
+    const vault = await Vault.create({ name: "Rotation", password: OLD });
+    const item = vault.addItem({ name: "Kept", type: "api-key", value: "EXAMPLE-rotation-value" });
+
+    await vault.changePassword(OLD, NEW);
+    const stored = vault.serialize();
+
+    const reopened = await Vault.unlock(stored, NEW);
+    assert.equal(reopened.size, 1);
+    assert.equal(reopened.readItem(item.id).value, "EXAMPLE-rotation-value");
+
+    await assert.rejects(() => Vault.unlock(stored, OLD), /Wrong master password/);
+  });
+
+  test("no item is re-encrypted", async () => {
+    // The vault key does not change, so the ciphertext is byte for byte the same.
+    // That is why a rotation is cheap, and why it does not need to rewrite anything
+    // that could fail halfway through.
+    const vault = await Vault.create({ name: "Rotation", password: OLD });
+    vault.addItem({ name: "Kept", type: "api-key", value: "EXAMPLE-rotation-value" });
+    const before = vault.serialize().items;
+    await vault.changePassword(OLD, NEW);
+    assert.deepEqual(vault.serialize().items, before);
+  });
+
+  test("the salt changes, so an old copy of the file stops helping", async () => {
+    const vault = await Vault.create({ name: "Rotation", password: OLD });
+    const saltBefore = vault.serialize().meta.salt;
+    await vault.changePassword(OLD, NEW);
+    assert.notEqual(vault.serialize().meta.salt, saltBefore);
+  });
+
+  test("the sequence does not move, because no item changed", async () => {
+    const vault = await Vault.create({ name: "Rotation", password: OLD });
+    vault.addItem({ name: "One", type: "note", notes: "invented" });
+    const seq = vault.seq;
+    await vault.changePassword(OLD, NEW);
+    assert.equal(vault.seq, seq, "a password change is not a vault-wide item change");
+  });
+
+  test("a wrong current password is refused and changes nothing", async () => {
+    const vault = await Vault.create({ name: "Rotation", password: OLD });
+    const before = vault.serialize().meta.wrapped;
+    await assert.rejects(() => vault.changePassword("not-the-password", NEW), /Wrong master password/);
+    assert.equal(vault.serialize().meta.wrapped, before);
+    await Vault.unlock(vault.serialize(), OLD);
+  });
+
+  test("a new password below the floor is refused", async () => {
+    const vault = await Vault.create({ name: "Rotation", password: OLD });
+    await assert.rejects(() => vault.changePassword(OLD, "short"), /at least 12/);
+  });
+});

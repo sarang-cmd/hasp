@@ -9,7 +9,7 @@
 // matched against a search query without the record holding readable text.
 
 import { randomUUID, createHmac, hkdfSync, randomBytes } from "node:crypto";
-import { deriveKey, newSalt, kdfParams } from "./kdf.js";
+import { deriveKey, newSalt, kdfParams, bytesEqual } from "./kdf.js";
 import { seal, open, newItemKey } from "./crypto.js";
 import { wrapKey, unwrapKey } from "./wrap.js";
 
@@ -522,6 +522,62 @@ export class Vault {
       searchTokens: Array.isArray(record.searchTokens) ? record.searchTokens : [],
     });
     return rev;
+  }
+
+  /**
+   * Change the master password.
+   *
+   * The vault key does not change, so no item is re-encrypted: only the wrap around
+   * it is replaced. That is what makes this cheap, and what makes it worth being
+   * careful about, because everything downstream of the vault key, every item key
+   * and the blind index, stays valid. The alternative, a new vault key, would mean
+   * decrypting and re-encrypting the whole vault on a password change, which is a
+   * much larger window in which a crash loses data.
+   *
+   * The salt is regenerated. Keeping the old one would let anyone holding an old
+   * copy of the file keep testing candidate passwords against the same derivation,
+   * which is the one thing a rotation is supposed to end.
+   *
+   * `nextSeq` is not called. A rotation changes no item, and a client asking what
+   * changed since revision N should not be handed the whole vault.
+   *
+   * @returns {Promise<object>} the new non-secret meta
+   */
+  async changePassword(current, next) {
+    if (String(next).length < 12) {
+      throw new Error("master password must be at least 12 characters");
+    }
+    // Prove the current password rather than trusting the caller. This is reachable
+    // from a request handler, and a handler that forgot is a handler that lets anyone
+    // with a session set a password they know. A session says "this browser unlocked
+    // the vault at some point", not "whoever is at the keyboard knows the password".
+    const checkSalt = Buffer.from(this.#meta.salt, "base64");
+    const checkKey = await deriveKey(String(current || ""), checkSalt, this.#meta.kdf);
+    try {
+      const opened = unwrapKey(checkKey, { wrapped: this.#meta.wrapped, nonce: this.#meta.nonce });
+      // The same key, or the wrap on disk is not the one being rotated. A mismatch
+      // means the file was replaced under a live session.
+      if (!bytesEqual(opened, this.#vaultKey)) throw new Error("Wrong master password");
+    } catch {
+      throw new Error("Wrong master password");
+    } finally {
+      checkKey.fill(0);
+    }
+
+    const salt = newSalt();
+    const params = kdfParams();
+    const nextKey = await deriveKey(next, salt, params);
+    const wrapped = wrapKey(nextKey, this.#vaultKey);
+    nextKey.fill(0);
+
+    this.#meta.kdf = params;
+    this.#meta.salt = salt.toString("base64");
+    this.#meta.wrapped = wrapped.wrapped;
+    this.#meta.nonce = wrapped.nonce;
+    // A passkey wrap, if one is ever added, is a second way into this same vault key
+    // and survives a password change. Nothing writes one yet; this is where a check
+    // would go.
+    return this.meta;
   }
 
   /** Record that an item was used. Best effort; never blocks a copy. */
