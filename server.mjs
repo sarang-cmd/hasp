@@ -482,6 +482,11 @@ async function route(req, res) {
     return json(res, 201, { id });
   }
 
+  /** What was deleted and can be brought back. */
+  if (path === "/api/items/deleted" && method === "GET") {
+    return json(res, 200, { items: vault.listDeleted() });
+  }
+
   const itemMatch = /^\/api\/items\/([\w-]+)(\/touch)?$/.exec(path);
   if (itemMatch) {
     const id = itemMatch[1];
@@ -498,6 +503,13 @@ async function route(req, res) {
       const payload = await body(req);
       vault.updateItem(id, payload);
       recordActivity("edited", { id, name: payload.name || vault.readItem(id)?.name });
+      await persist();
+      return json(res, 200, { ok: true });
+    }
+    if (method === "POST" && itemMatch[2] === undefined && url.searchParams.get("restore") === "1") {
+      const before = vault.listDeleted().find((i) => i.id === id);
+      vault.restoreItem(id);
+      recordActivity("restored", { id, name: before?.name });
       await persist();
       return json(res, 200, { ok: true });
     }

@@ -739,6 +739,31 @@ describe("other views", () => {
     assert.equal(text().includes("EXAMPLE-witness"), false, "a value reached the log view");
   });
 
+  test("a deleted item is listed in activity and restored from there", async () => {
+    const created = await window.fetch("/api/items", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: "Restore me", type: "api-key", value: "EXAMPLE-restore-ui" }),
+    });
+    const { id } = await created.json();
+    await window.fetch(`/api/items/${id}`, { method: "DELETE" });
+
+    document.querySelector('[data-view="activity"]').dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await settle(16);
+    const text = () => document.getElementById("app").textContent;
+    assert.match(text(), /Restore me/, "the deleted item is listed");
+
+    const button = document.querySelector(`[data-restore="${id}"]`);
+    assert.ok(button, "with a way to bring it back");
+    button.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+    await settle(20);
+
+    const deleted = await (await window.fetch("/api/items/deleted")).json();
+    assert.equal(deleted.items.some((i) => i.id === id), false, "it left the deleted list");
+    const state = await (await window.fetch("/api/state")).json();
+    assert.ok(state.items.some((i) => i.id === id), "and came back into the vault");
+  });
+
   test("the sync panel starts off, turns on, shows the token once and turns off", async () => {
     document.querySelector('[data-view="settings"]').dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
     await settle(12);

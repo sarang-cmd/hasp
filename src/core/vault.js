@@ -348,6 +348,37 @@ export class Vault {
   }
 
   /**
+   * Deleted items, newest deletion first.
+   *
+   * A delete keeps the record so the change can sync, which means the data is still
+   * there. Without a way to read it, the delete confirmation's promise that an item
+   * can be restored was false.
+   *
+   * @returns {object[]} plaintext fields plus id and the deletion time
+   */
+  listDeleted() {
+    const out = [];
+    for (const record of this.#items.values()) {
+      if (!record.deletedAt) continue;
+      const itemKey = unwrapKey(this.#vaultKey, record.wrappedKey);
+      let payload;
+      try {
+        payload = open(itemKey, record, {
+          vaultId: this.#meta.id,
+          itemId: record.id,
+          version: record.version,
+        });
+      } catch {
+        // A record that will not open is not a deleted item anyone can restore, so it
+        // is left out rather than shown as a row that fails when clicked.
+        continue;
+      }
+      out.push({ ...payload, id: record.id, deletedAt: record.deletedAt });
+    }
+    return out.sort((a, b) => String(b.deletedAt).localeCompare(String(a.deletedAt)));
+  }
+
+  /**
    * Decrypt one item.
    * @param {string} id
    * @returns {object|null} plaintext fields plus id, version and timestamps
