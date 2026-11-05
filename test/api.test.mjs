@@ -797,3 +797,45 @@ describe("on disk", () => {
     }
   });
 });
+
+describe("a vault that will not parse", () => {
+  test("the server says which file and leaves it alone", async () => {
+    // Before this, the failure printed "<anonymous_script>:1" and the path
+    // appeared nowhere, so the one thing needed to fix it was the one thing
+    // missing. Starting anyway would be worse: it would run on a vault that is
+    // not the one on disk, and the next write would replace the real one.
+    const { mkdtemp, writeFile, readFile, rm } = await import("node:fs/promises");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    const dir = await mkdtemp(join(tmpdir(), "hasp-bad-"));
+    const file = join(dir, "vault.json");
+    const broken = '{"meta": {"id": "x", "seq": 42}, "items": {';
+    await writeFile(file, broken, { mode: 0o600 });
+
+    const child = spawn(process.execPath, ["server.mjs", "--port=3924"], {
+      cwd: new URL("..", import.meta.url),
+      env: { ...process.env, HASP_VAULT_DIR: dir, PORT: "3924", HASP_EPHEMERAL: "" },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    let output = "";
+    child.stdout.setEncoding("utf8");
+    child.stderr.setEncoding("utf8");
+    child.stdout.on("data", (c) => (output += c));
+    child.stderr.on("data", (c) => (output += c));
+
+    const exited = await Promise.race([
+      once(child, "exit").then(() => true),
+      new Promise((r) => setTimeout(() => r(false), 15000)),
+    ]);
+    if (!exited) child.kill("SIGKILL");
+
+    try {
+      assert.equal(exited, true, "it kept running on a vault it could not read");
+      assert.match(output, /vault\.json/, "the message never names the file");
+      assert.match(output, /has not been changed/);
+      assert.equal(await readFile(file, "utf8"), broken, "the unreadable vault was overwritten");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+});

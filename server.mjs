@@ -240,7 +240,18 @@ async function persist() {
 
 async function bootVault() {
   if (existsSync(VAULT_FILE) && !EPHEMERAL) {
-    const stored = JSON.parse(await readFile(VAULT_FILE, "utf8"));
+    const text = await readFile(VAULT_FILE, "utf8");
+    let stored;
+    try {
+      stored = JSON.parse(text);
+    } catch (err) {
+      // Without this the stack reads "<anonymous_script>:1" and never says which
+      // file is at fault. The vault is left exactly as it is, so a copy of it can
+      // still be recovered; refusing to start is the point, because starting would
+      // mean running on a vault that is not the one on disk.
+      err.message = `${VAULT_FILE} is not readable as JSON (${err.message}). It has not been changed.`;
+      throw err;
+    }
     // The preview has no way to ask for the password before a request, so a
     // persisted vault is reopened with the sample password. A real deployment
     // unlocks per session instead.
