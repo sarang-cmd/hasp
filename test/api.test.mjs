@@ -680,3 +680,120 @@ describe("lock", () => {
     assert.equal(again.status, 200);
   });
 });
+
+// ---------------------------------------------------------------------------
+// What the server leaves on disk.
+//
+// The suite above runs ephemeral, so nothing has covered a real vault directory
+// until now. This starts a second server pointed at a temporary directory and
+// pokes the files while it writes.
+
+describe("on disk", () => {
+  let dir, own, ownBase, ownCookie;
+
+  /** Ask the second server something, with its own cookie. */
+  async function ask(path, { method = "GET", body } = {}) {
+    const headers = { "content-type": "application/json" };
+    if (ownCookie) headers.cookie = ownCookie;
+    const res = await fetch(`${ownBase}${path}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    const set = res.headers.get("set-cookie");
+    if (set) {
+      const pair = set.split(";")[0];
+      ownCookie = pair.endsWith("=") ? "" : pair;
+    }
+    return { status: res.status, json: await res.json().catch(() => null) };
+  }
+
+  before(async () => {
+    const { mkdtemp } = await import("node:fs/promises");
+    const { tmpdir } = await import("node:os");
+    const { join } = await import("node:path");
+    dir = await mkdtemp(join(tmpdir(), "hasp-disk-"));
+    own = spawn(process.execPath, ["server.mjs", "--port=3923"], {
+      cwd: new URL("..", import.meta.url),
+      env: { ...process.env, HASP_VAULT_DIR: dir, PORT: "3923", HASP_EPHEMERAL: "" },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    ownBase = "http://127.0.0.1:3923";
+    const lines = [];
+    own.stdout.setEncoding("utf8");
+    own.stdout.on("data", (c) => lines.push(c));
+    const deadline = Date.now() + 20000;
+    while (Date.now() < deadline) {
+      if (lines.join("").includes("Hasp on")) break;
+      if (own.exitCode !== null) throw new Error(`disk server exited: ${lines.join("")}`);
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    const unlocked = await ask("/api/unlock", { method: "POST", body: { password: "foundry-nightshift-2026" } });
+    assert.equal(unlocked.status, 200);
+  });
+
+  after(async () => {
+    if (own && own.exitCode === null) {
+      own.kill("SIGTERM");
+      await once(own, "exit").catch(() => {});
+    }
+    const { rm } = await import("node:fs/promises");
+    if (dir) await rm(dir, { recursive: true, force: true });
+  });
+
+  test("the vault file is never readable in a half-written state", async () => {
+    // writeFile truncates in place, so a reader polling during a write sees a
+    // short file. Before this was fixed the same loop found 37 unreadable reads
+    // out of 200. The bar is zero, and the payloads are large enough to make the
+    // window wide.
+    const { readFile } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    const payload = "Q".repeat(60000);
+    const writing = (async () => {
+      for (let i = 0; i < 60; i += 1) {
+        await ask("/api/items", {
+          method: "POST",
+          body: { name: `Torn ${i}`, type: "note", value: payload + i },
+        });
+      }
+    })();
+
+    let reads = 0;
+    let bad = 0;
+    const until = setTimeout(() => {}, 0);
+    clearTimeout(until);
+    while (true) {
+      const done = await Promise.race([writing.then(() => true), new Promise((r) => setTimeout(() => r(false), 0))]);
+      try {
+        JSON.parse(await readFile(join(dir, "vault.json"), "utf8"));
+        reads += 1;
+      } catch (err) {
+        if (err.code === "ENOENT") {
+          // Not written yet, which is not a torn read.
+        } else {
+          bad += 1;
+          reads += 1;
+        }
+      }
+      if (done) break;
+    }
+    await writing;
+    assert.ok(reads > 0, "the poll never managed to read the file");
+    assert.equal(bad, 0, `${bad} of ${reads} reads saw a partial vault`);
+  });
+
+  test("a write leaves no temporary files behind", async () => {
+    const { readdir } = await import("node:fs/promises");
+    const names = await readdir(dir);
+    assert.deepEqual(names.filter((n) => n.includes(".tmp")), [], `left behind: ${names.join(", ")}`);
+  });
+
+  test("the files are still only readable by their owner", async () => {
+    const { stat } = await import("node:fs/promises");
+    const { join } = await import("node:path");
+    for (const name of ["vault.json", "activity.json"]) {
+      const mode = (await stat(join(dir, name))).mode & 0o777;
+      assert.equal(mode, 0o600, `${name} is ${mode.toString(8)}`);
+    }
+  });
+});
