@@ -9,18 +9,23 @@
 
 import { session, state, unlock, lock, matchHost, getOrigin } from "./lib/client.js";
 import { esc, itemRow, empty, banner, groupCode } from "./lib/render.js";
+import { fillTarget, fillReasonText, armedFill, ARM_MS } from "./lib/fill.js";
 
 const view = document.getElementById("view");
 const stateLabel = document.getElementById("state");
 const footNote = document.getElementById("foot-note");
 
 /** What the last render was, so the clock can update codes without re-fetching. */
-let current = { kind: "loading", items: [], query: "", host: "" };
+let current = { kind: "loading", items: [], query: "", host: "", origin: "" };
+
+/** The tab the popup is looking at, kept so Fill writes into this one. */
+let activeTab = null;
 
 /** The active tab's hostname, which becomes the first thing the popup offers. */
 async function activeHost() {
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    activeTab = tab || null;
     if (!tab?.url) return "";
     const { hostname, protocol } = new URL(tab.url);
     return protocol === "http:" || protocol === "https:" ? hostname : "";
@@ -41,7 +46,7 @@ function nudgeWorker() {
 /* ------------------------------------------------------------------ views */
 
 function renderOffline(error) {
-  current = { kind: "offline", items: [], query: "", host: "" };
+  current = { kind: "offline", items: [], query: "", host: "", origin: current.origin };
   setStateLabel("Not running");
   view.innerHTML = `
     ${banner(error?.message || "The vault did not answer.", "error")}
@@ -59,7 +64,7 @@ function renderOffline(error) {
 }
 
 function renderGate({ message = "", wait = 0 } = {}) {
-  current = { kind: "gate", items: [], query: "", host: "" };
+  current = { kind: "gate", items: [], query: "", host: "", origin: current.origin };
   setStateLabel("Locked");
   view.innerHTML = `
     <form class="gate" id="gate">
@@ -103,6 +108,11 @@ function renderVault() {
   const q = query.trim();
   const visible = items;
 
+  // Where fill is not allowed, no Fill button is drawn at all. A button that answers
+  // with an explanation is worse than a sentence that explains itself.
+  const fillAllowed = fillTarget(activeTab?.url, current.origin || "").ok;
+  const row = (i) => itemRow(i, { fillable: fillAllowed });
+
   // Host matching is still local, because it is a lookup on the tab's hostname and
   // has nothing to do with what was typed.
   const relevant = q ? [] : matchHost(items, host);
@@ -114,8 +124,8 @@ function renderVault() {
            value="${esc(query)}" autocomplete="off" spellcheck="false" ${items.length ? "autofocus" : ""} />
     <div id="results">
       ${!items.length ? empty("Nothing in the vault yet", "Add something from the vault tab.") : ""}
-      ${relevant.length ? `<p class="section">For ${esc(host)}</p><ul class="items">${relevant.map((i) => itemRow(i)).join("")}</ul>` : ""}
-      ${rest.length ? `<p class="section">${relevant.length ? "Everything else" : "Items"}</p><ul class="items">${rest.map((i) => itemRow(i)).join("")}</ul>` : ""}
+      ${relevant.length ? `<p class="section">For ${esc(host)}</p><ul class="items">${relevant.map(row).join("")}</ul>` : ""}
+      ${rest.length ? `<p class="section">${relevant.length ? "Everything else" : "Items"}</p><ul class="items">${rest.map(row).join("")}</ul>` : ""}
       ${visible.length === 0 && items.length ? empty("No match", `Nothing matches "${query}".`) : ""}
     </div>
   `;
@@ -166,12 +176,16 @@ async function searchNow(query) {
 
 async function boot() {
   const host = await activeHost();
+  // Kept on `current` because Fill has to refuse the vault's own origin, and the
+  // guard is worthless if the origin it compares against is always "". It was,
+  // until this line existed.
+  current.origin = await getOrigin();
   current.host = host;
   try {
     const s = await session();
     if (!s.unlocked) return renderGate();
     const { items = [] } = await state();
-    current = { kind: "vault", items, query: "", host };
+    current = { ...current, kind: "vault", items, query: "", host };
     renderVault();
   } catch (err) {
     if (err.code === "locked") return renderGate();
@@ -211,6 +225,52 @@ async function copyText(text, button, restoreAfter = 25000) {
   return true;
 }
 
+/**
+ * Fill one item's value into the active tab.
+ *
+ * The value is read here, in the popup, and handed straight to the injected
+ * function. It is never stored, never messaged to the worker, and never written
+ * anywhere but the field. `executeScript` is called only from this click, which is
+ * the whole reason the extension can avoid a declared content script.
+ *
+ * The popup closing mid-flight is ordinary: Chrome tears it down when the user
+ * clicks the page to choose a field, which is exactly what they are being asked to
+ * do. The injected function is already installed by then and finishes on its own.
+ */
+async function doFill(id, button) {
+  const item = current.items.find((i) => i.id === id);
+  if (!item?.value) return;
+  const target = fillTarget(activeTab?.url, current.origin || "");
+  if (!target.ok) {
+    footNote.textContent = fillReasonText(target.reason);
+    return;
+  }
+  try {
+    const [result] = await chrome.scripting.executeScript({
+      target: { tabId: activeTab.id },
+      func: armedFill,
+      args: [item.value, ARM_MS],
+    });
+    if (!result?.result?.ok) {
+      footNote.textContent = "That page would not take the value.";
+      return;
+    }
+    if (result.result.how === "focused") {
+      button.textContent = "Filled";
+    } else {
+      // Not filled yet: the user has to click the field. Say so, and close, because
+      // the click that chooses the field is on the page behind this popup.
+      button.textContent = "Click a field";
+      footNote.textContent = `Fill for ${Math.round(ARM_MS / 1000)} seconds. It will not write anywhere else.`;
+      setTimeout(() => window.close(), 900);
+    }
+  } catch (err) {
+    footNote.textContent = /cannot be scripted|Cannot access/i.test(err?.message || "")
+      ? "This page does not allow extensions to fill it."
+      : "Fill failed. Copying still works.";
+  }
+}
+
 view.addEventListener("click", async (e) => {
   const codeButton = e.target.closest("[data-copy-code]");
   if (codeButton) {
@@ -219,6 +279,12 @@ view.addEventListener("click", async (e) => {
     if (code) await copyText(code, codeButton);
     return;
   }
+  const fillButton = e.target.closest("[data-fill]");
+  if (fillButton) {
+    await doFill(fillButton.dataset.fill, fillButton);
+    return;
+  }
+
   const valueButton = e.target.closest("[data-copy-value]");
   if (valueButton) {
     // The list endpoint already includes values, so this is a straight copy of
