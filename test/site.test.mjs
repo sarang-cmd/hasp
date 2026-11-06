@@ -9,7 +9,7 @@ import assert from "node:assert/strict";
 import { readFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { ROUTES, fileNameFor, structuredData, sitemap, robots, llms } from "../tools/site.mjs";
+import { ROUTES, fileNameFor, structuredData, sitemap, robots, llms, SITE_REVISED } from "../tools/site.mjs";
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(ROOT, "src/web/site-pages");
@@ -234,6 +234,29 @@ describe("site pages", () => {
 });
 
 describe("site files", () => {
+  test("the sitemap date does not move on its own", () => {
+    // This used to be new Date(), so the committed sitemap went stale every night and
+    // the CI step that regenerates and diffs it failed the next pull request of the
+    // day, whatever it contained. It also claimed every page had changed today, every
+    // day. The date is now a constant a human bumps, and this checks it is a date and
+    // that generating twice gives the same bytes.
+    assert.match(SITE_REVISED, /^\d{4}-\d{2}-\d{2}$/);
+    assert.equal(sitemap(), sitemap(), "the sitemap is not stable between two calls");
+    const stamp = /<lastmod>([^<]+)<\/lastmod>/.exec(sitemap())[1];
+    assert.equal(stamp, SITE_REVISED);
+    // The real check: the default must not consult the clock. Two calls in one day
+    // agree even when the implementation is wrong, so the default argument is read
+    // off the function and compared, rather than inferred from output.
+    const source = readFileSync(new URL("../tools/site.mjs", import.meta.url), "utf8");
+    const fn = /export function sitemap\(\{[^}]*\}[^)]*\)\s*\{([\s\S]*?)\n\}/.exec(source);
+    assert.ok(fn, "sitemap() is not the shape this test reads");
+    assert.ok(!/new Date\(/.test(fn[1]), "the sitemap date comes from the clock again");
+    assert.match(source, /export const SITE_REVISED = /);
+    // No route may carry a different date, which would mean one was special cased.
+    const all = [...sitemap().matchAll(/<lastmod>([^<]+)<\/lastmod>/g)].map((m) => m[1]);
+    assert.equal(new Set(all).size, 1, "the sitemap uses more than one date");
+  });
+
   test("the sitemap lists every page except the error page", () => {
     const xml = sitemap();
     for (const [route] of ROUTES) {
