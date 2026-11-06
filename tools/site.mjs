@@ -71,14 +71,31 @@ export function structuredData() {
   ];
 }
 
+/**
+ * The date the site copy last changed.
+ *
+ * Bumped by hand when page text changes. It is deliberately not the clock.
+ *
+ * It used to be `new Date()`, which broke two things. The committed sitemap went
+ * stale at midnight, so the CI step that regenerates the site and diffs it failed
+ * every pull request the next day for a reason unrelated to the change, including
+ * a PR that only added a markdown file. And it was untrue: every URL claimed to have
+ * changed today, every day, which is the kind of lastmod a crawler learns to ignore.
+ *
+ * A build has to be a pure function of what is committed or the diff check cannot
+ * work, and the clock is not committed. A constant is, and it is honest, because a
+ * human asserts it.
+ */
+export const SITE_REVISED = "2026-11-06";
+
 /** Every route, its last-modified date, for sitemap.xml. */
-export function sitemap() {
-  const today = new Date().toISOString().slice(0, 10);
+export function sitemap({ date = SITE_REVISED } = {}) {
+  const stamp = date;
   const urls = ROUTES.filter(([route]) => route !== "/404")
     .map(([route]) => {
       // The demonstration is not a marketing page and is excluded from the sitemap.
       const priority = route === "/" ? "1.0" : route.startsWith("/docs") ? "0.6" : "0.8";
-      return `  <url>\n    <loc>https://hasp.dev${route === "/" ? "/" : route}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
+      return `  <url>\n    <loc>https://hasp.dev${route === "/" ? "/" : route}</loc>\n    <lastmod>${stamp}</lastmod>\n    <changefreq>monthly</changefreq>\n    <priority>${priority}</priority>\n  </url>`;
     })
     .join("\n");
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`;
