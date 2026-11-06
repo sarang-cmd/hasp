@@ -39,5 +39,8 @@
     "sharp": "^0.35.5",
     "wawoff2": "^1.0.2"
   },
-  "main": "desktop/main.js"
+  "main": "desktop/main.js",
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
+  }
 }
