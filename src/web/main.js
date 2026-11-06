@@ -1,6 +1,10 @@
 // Entry point. Applies the saved appearance before the first paint, then boots.
 
+import { inject } from '@vercel/analytics';
 import { boot } from "./app.js";
+
+// Initialize Vercel Web Analytics
+inject();
 
 boot().catch((err) => {
   const app = document.getElementById("app");
