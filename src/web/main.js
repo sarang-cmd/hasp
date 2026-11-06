@@ -1,10 +1,14 @@
 // Entry point. Applies the saved appearance before the first paint, then boots.
 
 import { inject } from '@vercel/analytics';
+import { injectSpeedInsights } from '@vercel/speed-insights';
 import { boot } from "./app.js";
 
 // Initialize Vercel Web Analytics
 inject();
+
+// Initialize Vercel Speed Insights
+injectSpeedInsights();
 
 boot().catch((err) => {
   const app = document.getElementById("app");
